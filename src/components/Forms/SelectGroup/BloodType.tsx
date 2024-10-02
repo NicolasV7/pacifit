@@ -1,11 +1,22 @@
 import React, { useState } from 'react';
 
-const SelectGroupTwo: React.FC = () => {
+// Asegúrate de que la interfaz incluya onChange
+interface BloodTypeProps {
+  onChange: (selectedBloodType: string) => void; // Propiedad que recibe el componente padre
+}
+
+const BloodType: React.FC<BloodTypeProps> = ({ onChange }) => {
   const [selectedOption, setSelectedOption] = useState<string>('');
-  const [isOptionSelected, setIsOptionSelected] = useState<boolean>(false);
 
   const changeTextColor = () => {
-    setIsOptionSelected(true);
+    // Aquí puedes agregar lógica para cambiar el color de texto si es necesario
+  };
+
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    setSelectedOption(value);
+    changeTextColor();
+    onChange(value); // Llama a la función onChange cuando se selecciona un tipo de sangre
   };
 
   return (
@@ -49,10 +60,7 @@ const SelectGroupTwo: React.FC = () => {
         <select
           className="w-full rounded border border-stroke bg-gray py-3 pl-11.5 pr-4.5 text-black focus:border-primary focus-visible:outline-none dark:border-strokedark dark:bg-meta-4 dark:text-white dark:focus:border-primary"
           value={selectedOption}
-          onChange={(e) => {
-            setSelectedOption(e.target.value);
-            changeTextColor();
-          }}
+          onChange={handleSelectChange} // Usa la nueva función aquí
         >
           <option value="" disabled>Selecciona tu tipo de sangre</option>
           <option value="A+">A+</option>
@@ -69,4 +77,4 @@ const SelectGroupTwo: React.FC = () => {
   );
 };
 
-export default SelectGroupTwo;
+export default BloodType;
