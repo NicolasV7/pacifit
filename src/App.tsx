@@ -9,7 +9,7 @@ import FormElements from './pages/Form/FormElements';
 import FormLayout from './pages/Form/FormLayout';
 import Profile from './pages/Profile';
 import Settings from './pages/AddUser';
-import Tables from './pages/Tables';
+import Tables from './pages/Settings';
 import Alerts from './pages/UiElements/Alerts';
 import Buttons from './pages/UiElements/Buttons';
 import DefaultLayout from './layout/DefaultLayout';

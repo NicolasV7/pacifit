@@ -259,7 +259,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                       </clipPath>
                     </defs>
                   </svg>
-                  Tables
+                  Configuraciones
                 </NavLink>
               </li>
               {/* <!-- Menu Item Tables --> */}
@@ -302,7 +302,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                       </clipPath>
                     </defs>
                   </svg>
-                  Settings
+                  Registrar Usuario
                 </NavLink>
               </li>
               {/* <!-- Menu Item Settings --> */}
