@@ -43,6 +43,15 @@ const GymPlans = () => {
     localStorage.setItem('gymPlans', JSON.stringify(updatedPlans));
   };
 
+  // Función para eliminar un plan
+  const deletePlan = (index: number) => {
+    const updatedPlans = plans.filter((_, i) => i !== index);
+    setPlans(updatedPlans);
+
+    // Actualizar localStorage
+    localStorage.setItem('gymPlans', JSON.stringify(updatedPlans));
+  };
+
   // Función para formatear el precio
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-CO').format(price);
@@ -161,8 +170,15 @@ const GymPlans = () => {
                   <ul>
                     {plans.map((plan, index) => (
                       <li key={index} className="flex justify-between border-b py-2">
-                        <span>{plan.name}</span>
-                        <span>${formatPrice(plan.price)}</span>
+                        <div>
+                          <span>{plan.name}</span> - <span>${formatPrice(plan.price)}</span>
+                        </div>
+                        <button
+                          onClick={() => deletePlan(index)}
+                          className="ml-4 text-red-600 hover:underline"
+                        >
+                          X
+                        </button>
                       </li>
                     ))}
                   </ul>
