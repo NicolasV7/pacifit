@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Breadcrumb from '../components/Breadcrumbs/Breadcrumb';
 
 const UserSearch = () => {
@@ -10,7 +10,9 @@ const UserSearch = () => {
     bloodType: string;
     emergencyContactName: string;
     emergencyContactPhone: string;
+    gymPlan: string;
   } | null>(null);
+  const [daysRemaining, setDaysRemaining] = useState<number | null>(null); // Para mostrar los días restantes
   const [showErrorAlert, setShowErrorAlert] = useState(false);
 
   const handleSearch = () => {
@@ -21,6 +23,24 @@ const UserSearch = () => {
       const foundUser = users.find((user: { idNumber: string }) => user.idNumber === idNumber);
 
       if (foundUser) {
+        console.log('Usuario encontrado:', foundUser);
+
+        // Verificar los días restantes en el arreglo "subscriptions"
+        const storedSubscriptions = localStorage.getItem('subscriptions');
+        if (storedSubscriptions) {
+          const subscriptions = JSON.parse(storedSubscriptions);
+          console.log('Suscripciones en localStorage:', subscriptions);
+
+          // Buscar los días restantes del usuario por su idNumber
+          const userSubscription = subscriptions.find((subscription: { idNumber: string }) => subscription.idNumber === foundUser.idNumber);
+          console.log('Suscripción encontrada para el usuario:', userSubscription);
+
+          if (userSubscription) {
+            setDaysRemaining(userSubscription.days); // Establece los días restantes
+          } else {
+            setDaysRemaining(0); // Si no se encuentra la suscripción, muestra 0 días
+          }
+        }
         setUserData(foundUser);
       } else {
         setShowErrorAlert(true);
@@ -28,6 +48,7 @@ const UserSearch = () => {
           setShowErrorAlert(false);
         }, 2000);
         setUserData(null);
+        setDaysRemaining(null);
       }
     }
   };
@@ -96,6 +117,10 @@ const UserSearch = () => {
                       <li><strong>Contacto de Emergencia:</strong> {userData.emergencyContactName}</li>
                       <li><strong>Teléfono de Emergencia:</strong> {userData.emergencyContactPhone}</li>
                     </ul>
+                    <p><strong>Plan de Gimnasio:</strong> {userData.gymPlan}</p>
+                    {daysRemaining !== null && (
+                      <p><strong>Días Restantes del Plan:</strong> {daysRemaining} días</p>
+                    )}
                   </div>
                 )}
               </div>

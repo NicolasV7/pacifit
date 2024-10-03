@@ -1,11 +1,12 @@
-import Breadcrumb from '../components/Breadcrumbs/Breadcrumb';
 import React, { useState } from 'react';
+import Breadcrumb from '../components/Breadcrumbs/Breadcrumb';
 
 const ManageData = () => {
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
 
-  const downloadData = () => {
+  // Funciones para gestionar los datos de 'users'
+  const downloadUserData = () => {
     const data = localStorage.getItem('users');
     if (data) {
       const blob = new Blob([data], { type: 'application/json' });
@@ -27,7 +28,7 @@ const ManageData = () => {
     }
   };
 
-  const clearData = () => {
+  const clearUserData = () => {
     localStorage.removeItem('users');
     setShowSuccessAlert(true);
     setTimeout(() => {
@@ -35,7 +36,7 @@ const ManageData = () => {
     }, 2000);
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUserFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -44,6 +45,61 @@ const ManageData = () => {
           const json = e.target?.result as string;
           const users = JSON.parse(json);
           localStorage.setItem('users', JSON.stringify(users));
+          setShowSuccessAlert(true);
+          setTimeout(() => {
+            setShowSuccessAlert(false);
+          }, 2000);
+        } catch (error) {
+          setShowErrorAlert(true);
+          setTimeout(() => {
+            setShowErrorAlert(false);
+          }, 2000);
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  // Funciones para gestionar los datos de 'subscriptions'
+  const downloadSubscriptionData = () => {
+    const data = localStorage.getItem('subscriptions');
+    if (data) {
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'subscriptions.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      setShowSuccessAlert(true);
+      setTimeout(() => {
+        setShowSuccessAlert(false);
+      }, 2000);
+    } else {
+      setShowErrorAlert(true);
+      setTimeout(() => {
+        setShowErrorAlert(false);
+      }, 2000);
+    }
+  };
+
+  const clearSubscriptionData = () => {
+    localStorage.removeItem('subscriptions');
+    setShowSuccessAlert(true);
+    setTimeout(() => {
+      setShowSuccessAlert(false);
+    }, 2000);
+  };
+
+  const handleSubscriptionFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const json = e.target?.result as string;
+          const subscriptions = JSON.parse(json);
+          localStorage.setItem('subscriptions', JSON.stringify(subscriptions));
           setShowSuccessAlert(true);
           setTimeout(() => {
             setShowSuccessAlert(false);
@@ -134,24 +190,44 @@ const ManageData = () => {
               <div className="mt-6 flex flex-col items-center space-y-4" >
                 <div className="flex justify-center space-x-4">
                   <button
-                    onClick={downloadData}
+                    onClick={downloadUserData}
                     className="rounded bg-primary px-6 py-2.5 text-white transition duration-200 hover:bg-opacity-80"
                   >
-                    Descargar Datos
+                    Descargar Datos de Usuarios
                   </button>
                   <button
-                    onClick={clearData}
+                    onClick={clearUserData}
                     className="rounded border border-red-600 bg-transparent px-6 py-2.5 text-red-600 transition duration-200 hover:bg-red-600 hover:text-white"
                   >
-                    Limpiar Datos
+                    Limpiar Datos de Usuarios
                   </button>
                 </div>
-
-                {/* Input para cargar el archivo JSON */}
-                <input 
+                <input
                   type="file"
                   accept=".json"
-                  onChange={handleFileChange}
+                  onChange={handleUserFileChange}
+                  className="mt-4 border rounded p-2"
+                />
+
+                {/* Gestión de suscripciones */}
+                <div className="flex justify-center space-x-4 mt-8">
+                  <button
+                    onClick={downloadSubscriptionData}
+                    className="rounded bg-primary px-6 py-2.5 text-white transition duration-200 hover:bg-opacity-80"
+                  >
+                    Descargar Datos de Suscripciones
+                  </button>
+                  <button
+                    onClick={clearSubscriptionData}
+                    className="rounded border border-red-600 bg-transparent px-6 py-2.5 text-red-600 transition duration-200 hover:bg-red-600 hover:text-white"
+                  >
+                    Limpiar Datos de Suscripciones
+                  </button>
+                </div>
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={handleSubscriptionFileChange}
                   className="mt-4 border rounded p-2"
                 />
               </div>
