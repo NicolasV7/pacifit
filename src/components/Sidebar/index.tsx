@@ -325,8 +325,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
 
                 <NavLink
                   to="/buscar-usuario"
-                  target='_blank'
-                  rel='noopener noreferrer'
                   className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
                     pathname.includes('users') && 'bg-graydark dark:bg-meta-4'
                   }`}
