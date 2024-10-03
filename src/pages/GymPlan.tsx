@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import Breadcrumb from '../components/Breadcrumbs/Breadcrumb';
 import TrashIcon from '../images/icon/TrashIcon.svg';
-
+import Breadcrumb from '../components/Breadcrumbs/Breadcrumb';
 
 const GymPlans = () => {
   const [plans, setPlans] = useState<{ name: string; price: number; days: number }[]>([]);

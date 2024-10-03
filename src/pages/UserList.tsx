@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { FaEdit, FaSearch, FaTrash } from 'react-icons/fa'; // Asegúrate de instalar react-icons
 import Breadcrumb from '../components/Breadcrumbs/Breadcrumb';
 
+
+
 interface User {
     idNumber: string; // Cambiar a 'string' ya que es el número de identificación
     fullName: string;
