@@ -9,6 +9,8 @@ import Settings from './pages/Settings';
 import DefaultLayout from './layout/DefaultLayout';
 import AddUser from './pages/AddUser';
 import GymPlans from './pages/GymPlan';
+import SearchUser from './pages/SearchUser';
+
 
 function App() {
   const [loading, setLoading] = useState<boolean>(true);
@@ -72,6 +74,15 @@ function App() {
             </>
           }
         />
+        <Route
+          path="/buscar-usuario"
+          element={
+            <>
+              <PageTitle title="Buscar Usuario | Pacifit - Admin Dashboard" />
+              <SearchUser />
+            </>
+          }
+          />
 
       </Routes>
     </DefaultLayout>
