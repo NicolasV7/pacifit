@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { FaEdit, FaSearch } from 'react-icons/fa'; // Asegúrate de instalar react-icons
+import { FaEdit, FaSearch, FaTrash } from 'react-icons/fa'; // Asegúrate de instalar react-icons
 import Breadcrumb from '../components/Breadcrumbs/Breadcrumb';
 
+
+
 interface User {
-    id: number; // Cambiar a 'string' si el ID se genera como string
+    idNumber: string; // Cambiar a 'string' ya que es el número de identificación
     fullName: string;
     phoneNumber: string;
-    idNumber: string;
     eps: string;
     bloodType: string;
     emergencyContactName: string;
@@ -35,6 +36,13 @@ const UserList: React.FC = () => {
         );
     });
 
+    // Función para eliminar un usuario por su número de identificación
+    const handleDeleteUser = (idNumber: string) => {
+        const updatedUsers = users.filter(user => user.idNumber !== idNumber);
+        setUsers(updatedUsers);
+        localStorage.setItem('users', JSON.stringify(updatedUsers));
+    };
+
     return (
         <div className="container mx-auto p-4">
             <Breadcrumb pageName="Lista de usuarios" />
@@ -61,14 +69,14 @@ const UserList: React.FC = () => {
                             <th className="py-2 px-4 border-b text-left">Número de ID</th>
                             <th className="py-2 px-4 border-b text-left">EPS</th>
                             <th className="py-2 px-4 border-b text-left">Tipo de Sangre</th>
-                            <th className="py-2 px-4 border-b text-left">Telefono</th>
+                            <th className="py-2 px-4 border-b text-left">Nombre de contacto</th>
                             <th className="py-2 px-4 border-b text-left">Teléfono del contacto</th>
-                            <th className="py-2 px-4 border-b text-left">Acciones</th>
+                            <th className="py-2 px-4 border-b text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredUsers.map(user => (
-                            <tr key={user.id} className="hover:bg-gray-100">
+                            <tr key={user.idNumber} className="hover:bg-gray-100">
                                 <td className="py-2 px-4 border-b text-left">{user.fullName}</td>
                                 <td className="py-2 px-4 border-b text-left">{user.phoneNumber}</td>
                                 <td className="py-2 px-4 border-b text-left">{user.idNumber}</td>
@@ -79,6 +87,12 @@ const UserList: React.FC = () => {
                                 <td className="py-2 px-4 border-b text-center">
                                     <button className="text-blue-600 hover:text-blue-800">
                                         <FaEdit />
+                                    </button>
+                                    <button 
+                                        className="text-red-600 hover:text-red-800 ml-2" 
+                                        onClick={() => handleDeleteUser(user.idNumber)} // Eliminar el usuario específico
+                                    >
+                                        <FaTrash />
                                     </button>
                                 </td>
                             </tr>

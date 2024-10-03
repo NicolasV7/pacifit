@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import TrashIcon from '../images/icon/TrashIcon.svg';
 import Breadcrumb from '../components/Breadcrumbs/Breadcrumb';
 
 const GymPlans = () => {
@@ -17,13 +18,12 @@ const GymPlans = () => {
   }, []);
 
   const addPlan = () => {
-    // Validación para que el nombre no esté vacío, el precio sea mayor a 0 y los días sean mayor a 0
     if (
       planName.trim() === '' ||
       planPrice.trim() === '' ||
       planDays.trim() === '' ||
-      parseFloat(planPrice) <= 0 || // Validar que el precio sea mayor a 0
-      parseInt(planDays, 10) <= 0    // Validar que los días sean mayor a 0
+      parseFloat(planPrice) <= 0 ||
+      parseInt(planDays, 10) <= 0
     ) {
       setShowErrorAlert(true);
       setTimeout(() => {
@@ -160,7 +160,7 @@ const GymPlans = () => {
                           onClick={() => deletePlan(index)}
                           className="ml-4 text-red-600 hover:underline"
                         >
-                          X
+                          <img src={TrashIcon} alt="Eliminar" className="w-6 h-6" />
                         </button>
                       </li>
                     ))}
