@@ -61,8 +61,8 @@ const UserList: React.FC = () => {
                             <th className="py-2 px-4 border-b text-left">Número de ID</th>
                             <th className="py-2 px-4 border-b text-left">EPS</th>
                             <th className="py-2 px-4 border-b text-left">Tipo de Sangre</th>
-                            <th className="py-2 px-4 border-b text-left">Contacto de Emergencia</th>
-                            <th className="py-2 px-4 border-b text-left">Teléfono de Emergencia</th>
+                            <th className="py-2 px-4 border-b text-left">Telefono</th>
+                            <th className="py-2 px-4 border-b text-left">Teléfono del contacto</th>
                             <th className="py-2 px-4 border-b text-left">Acciones</th>
                         </tr>
                     </thead>
