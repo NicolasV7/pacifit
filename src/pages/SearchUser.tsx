@@ -1,19 +1,6 @@
 import React, { useState } from 'react';
 import Breadcrumb from '../components/Breadcrumbs/Breadcrumb';
 
-// Función para calcular la cantidad de días restantes
-const calculateDaysRemaining = (endDate: string) => {
-  const end = new Date(endDate);
-  const today = new Date();
-
-  // Ajustar el objeto Date para que solo contenga la parte de la fecha, sin la hora
-  today.setHours(0, 0, 0, 0); // Establece la hora a 00:00:00 para evitar diferencias por tiempo
-
-  const timeDiff = end.getTime() - today.getTime();
-  const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
-  return daysDiff >= 0 ? daysDiff : 0; // Si los días restantes son negativos, devuelve 0
-};
-
 const UserSearch = () => {
   const [idNumber, setIdNumber] = useState('');
   const [userData, setUserData] = useState<{
@@ -25,9 +12,9 @@ const UserSearch = () => {
     emergencyContactPhone: string;
     gymPlan: string;
   } | null>(null);
-  const [daysRemaining, setDaysRemaining] = useState<number | null>(null); // Para mostrar los días restantes
+  const [daysRemaining, setDaysRemaining] = useState<number | null>(null);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
-  const [endDate, setEndDate] = useState<string | null>(null); // Para mostrar la fecha de fin
+  const [endDate, setEndDate] = useState<string | null>(null);
 
   const handleSearch = () => {
     const storedUsers = localStorage.getItem('users');
@@ -45,14 +32,14 @@ const UserSearch = () => {
           const subscriptions = JSON.parse(storedSubscriptions);
           console.log('Suscripciones en localStorage:', subscriptions);
 
-          // Buscar los días restantes del usuario por su idNumber
+          // Buscar la suscripción del usuario por su idNumber
           const userSubscription = subscriptions.find((subscription: { idNumber: string }) => subscription.idNumber === foundUser.idNumber);
           console.log('Suscripción encontrada para el usuario:', userSubscription);
 
           if (userSubscription) {
-            const remainingDays = calculateDaysRemaining(userSubscription.endDate); // Calcula los días restantes
-            setDaysRemaining(remainingDays);
-            setEndDate(userSubscription.endDate); // Establece la fecha de fin
+            // Usar directamente daysRemaining de la suscripción
+            setDaysRemaining(userSubscription.daysRemaining);
+            setEndDate(userSubscription.endDate);
           } else {
             setDaysRemaining(0); // Si no se encuentra la suscripción, muestra 0 días
             setEndDate(null);

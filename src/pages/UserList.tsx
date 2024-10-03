@@ -93,28 +93,34 @@ const UserList: React.FC = () => {
   };
 
   const handleUpdateUser = () => {
+    if (!editingUser) return;
+
     const updatedUsers = users.map((user) =>
-      user.idNumber === editingUser?.idNumber ? editingUser : user
+      user.idNumber === editingUser.idNumber ? editingUser : user
     );
     setUsers(updatedUsers);
     localStorage.setItem('users', JSON.stringify(updatedUsers));
 
     const selectedPlan = gymPlans.find(
-      (plan) => plan.name === editingUser?.gymPlan
+      (plan) => plan.name === editingUser.gymPlan
     );
+
     if (selectedPlan) {
       const today = new Date();
       let endDate: string;
+      let daysRemaining: number;
 
+      // Asigna 30 días para el plan de 15 días, pero daysRemaining será 15
       if (selectedPlan.days === 15) {
         endDate = calculateEndDate(today, 30); // Asigna 30 días para el plan de 15 días
+        daysRemaining = 15; // Aquí se mantiene el número de días restantes como 15
       } else {
         endDate = calculateEndDate(today, selectedPlan.days);
+        daysRemaining = calculateDaysRemaining(endDate); // Calcula días restantes normalmente
       }
-      const daysRemaining = calculateDaysRemaining(endDate);
 
       const subscription = {
-        idNumber: editingUser?.idNumber,
+        idNumber: editingUser.idNumber,
         days: selectedPlan.days,
         endDate: endDate,
         daysRemaining: daysRemaining,
@@ -124,7 +130,7 @@ const UserList: React.FC = () => {
         localStorage.getItem('subscriptions') || '[]'
       );
       const updatedSubscriptions = existingSubscriptions.filter(
-        (sub: { idNumber: string }) => sub.idNumber !== editingUser?.idNumber
+        (sub: { idNumber: string }) => sub.idNumber !== editingUser.idNumber
       );
       updatedSubscriptions.push(subscription);
 
