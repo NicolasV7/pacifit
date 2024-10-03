@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
+import UserList from './pages/UserList';
 
 import Loader from './common/Loader';
 import PageTitle from './components/PageTitle';
@@ -112,6 +113,16 @@ function App() {
             </>
           }
         />
+         <Route
+          path="/users"
+          element={
+            <>
+              <PageTitle title="Lista de Usuarios | Pacifit - Admin Dashboard" />
+              <UserList />  
+            </>
+          }
+        />
+        
       </Routes>
     </DefaultLayout>
   );
