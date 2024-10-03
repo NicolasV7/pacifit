@@ -4,16 +4,13 @@ import UserList from './pages/UserList';
 
 import Loader from './common/Loader';
 import PageTitle from './components/PageTitle';
-import Chart from './pages/Chart';
 import ECommerce from './pages/Dashboard/ECommerce';
 import FormElements from './pages/Form/FormElements';
 import FormLayout from './pages/Form/FormLayout';
-import Profile from './pages/Profile';
-import Settings from './pages/AddUser';
-import Tables from './pages/Settings';
-import Alerts from './pages/UiElements/Alerts';
-import Buttons from './pages/UiElements/Buttons';
+import Settings from './pages/Settings';
 import DefaultLayout from './layout/DefaultLayout';
+import AddUser from './pages/AddUser';
+import GymPlans from './pages/Profile';
 
 function App() {
   const [loading, setLoading] = useState<boolean>(true);
@@ -45,8 +42,8 @@ function App() {
           path="/profile"
           element={
             <>
-              <PageTitle title="Perfil | Pacifit - Admin Dashboard" />
-              <Profile />
+              <PageTitle title="Planes | Pacifit - Admin Dashboard" />
+              <GymPlans />
             </>
           }
         />
@@ -72,8 +69,8 @@ function App() {
           path="/tables"
           element={
             <>
-              <PageTitle title="Tables | Pacifit - Admin Dashboard" />
-              <Tables />
+              <PageTitle title="Configuraciones | Pacifit - Admin Dashboard" />
+              <Settings />
             </>
           }
         />
@@ -81,35 +78,8 @@ function App() {
           path="/settings"
           element={
             <>
-              <PageTitle title="Settings | Pacifit - Admin Dashboard" />
-              <Settings />
-            </>
-          }
-        />
-        <Route
-          path="/chart"
-          element={
-            <>
-              <PageTitle title="Basic Chart | Pacifit - Admin Dashboard" />
-              <Chart />
-            </>
-          }
-        />
-        <Route
-          path="/ui/alerts"
-          element={
-            <>
-              <PageTitle title="Alerts | Pacifit - Admin Dashboard" />
-              <Alerts />
-            </>
-          }
-        />
-        <Route
-          path="/ui/buttons"
-          element={
-            <>
-              <PageTitle title="Buttons | Pacifit - Admin Dashboard" />
-              <Buttons />
+              <PageTitle title="Registrar Usuarios | Pacifit - Admin Dashboard" />
+              <AddUser />
             </>
           }
         />
@@ -118,11 +88,11 @@ function App() {
           element={
             <>
               <PageTitle title="Lista de Usuarios | Pacifit - Admin Dashboard" />
-              <UserList />  
+              <UserList />
             </>
           }
         />
-        
+
       </Routes>
     </DefaultLayout>
   );
