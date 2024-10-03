@@ -307,6 +307,25 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
 
                 Buscar Usuario
               </NavLink>
+
+              <NavLink
+                to="/registrar-entrada"
+                className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
+                  pathname.includes('users') && 'bg-graydark dark:bg-meta-4'
+                }`}
+              >
+                <svg
+                  className="fill-current"
+                  width="24"  // Tamaño aumentado
+                  height="24" // Tamaño aumentado
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-3.3 0-10 1.7-10 5v2h20v-2c0-3.3-6.7-5-10-5z" />
+                </svg>
+
+                Registrar Entrada
+              </NavLink>
               </li>
             </ul>
           </div>

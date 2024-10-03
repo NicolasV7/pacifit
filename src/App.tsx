@@ -10,6 +10,7 @@ import DefaultLayout from './layout/DefaultLayout';
 import AddUser from './pages/AddUser';
 import GymPlans from './pages/GymPlan';
 import SearchUser from './pages/SearchUser';
+import Register from './pages/Register';
 
 
 function App() {
@@ -83,6 +84,16 @@ function App() {
             </>
           }
           />
+                  <Route
+          path="/registrar-entrada"
+          element={
+            <>
+              <PageTitle title="Registrar Entrada | Pacifit - Admin Dashboard" />
+              <Register />
+            </>
+          }
+          />
+
 
       </Routes>
     </DefaultLayout>
