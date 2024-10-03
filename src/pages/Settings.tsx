@@ -62,7 +62,7 @@ const ManageData = () => {
   return (
     <>
       {showSuccessAlert && (
-        <div className="absolute right-0 top-20 z-10 flex w-full max-w-md border-l-6 border-[#34D399] bg-[#34D399] bg-opacity-[15%] px-7 py-8 shadow-md dark:bg-[#1B1B24] dark:bg-opacity-30 md:p-9">
+        <div className="absolute right-30 top-50 z-10 flex w-full max-w-md border-l-6 border-[#34D399] bg-[#34D399] bg-opacity-[15%] px-4 py-3 shadow-md dark:bg-[#1B1B24] dark:bg-opacity-30 md:p-9">
           <div className="mr-5 flex h-9 w-full max-w-[36px] items-center justify-center rounded-lg bg-[#34D399]">
             <svg
               width="16"
@@ -90,7 +90,7 @@ const ManageData = () => {
       )}
 
       {showErrorAlert && (
-        <div className="absolute right-0 top-20 z-10 flex w-full max-w-md border-l-6 border-red-600 bg-red-600 bg-opacity-[15%] px-7 py-8 shadow-md dark:bg-[#1B1B24] dark:bg-opacity-30 md:p-9">
+        <div className="absolute right-30 top-50 z-10 flex w-full max-w-md border-l-6 border-red-600 bg-red-600 bg-opacity-[15%] px-4 py-3 shadow-md dark:bg-[#1B1B24] dark:bg-opacity-30 md:p-9">
           <div className="mr-5 flex h-9 w-full max-w-[36px] items-center justify-center rounded-lg bg-red-600">
             <svg
               width="16"
@@ -121,7 +121,7 @@ const ManageData = () => {
       )}
 
       <div className="mx-auto max-w-270">
-        <Breadcrumb pageName="Gestión de Datos" />
+        <Breadcrumb pageName="Configuraciones" />
 
         <div className="grid grid-cols-5 gap-8">
           <div className="col-span-5 xl:col-span-3">
@@ -131,8 +131,8 @@ const ManageData = () => {
                   Gestión de Datos
                 </h3>
               </div>
-              <div className="p-7">
-                <div className="mt-6 flex justify-end space-x-4">
+              <div className="mt-6 flex flex-col items-center space-y-4" >
+                <div className="flex justify-center space-x-4">
                   <button
                     onClick={downloadData}
                     className="rounded bg-primary px-6 py-2.5 text-white transition duration-200 hover:bg-opacity-80"
@@ -148,7 +148,7 @@ const ManageData = () => {
                 </div>
 
                 {/* Input para cargar el archivo JSON */}
-                <input
+                <input 
                   type="file"
                   accept=".json"
                   onChange={handleFileChange}

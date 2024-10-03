@@ -91,7 +91,7 @@ const AddUser = () => {
           </div>
           <div className="w-full">
             <h5 className="mb-3 text-lg font-semibold text-black dark:text-[#34D399] ">
-              El mensaje se envió exitosamente
+              ¡Registro exitoso!
             </h5>
             <p className="text-base leading-relaxed text-body">
               Los datos se han guardado correctamente.
