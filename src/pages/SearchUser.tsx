@@ -1,6 +1,19 @@
 import React, { useState } from 'react';
 import Breadcrumb from '../components/Breadcrumbs/Breadcrumb';
 
+// Función para calcular la cantidad de días restantes
+const calculateDaysRemaining = (endDate: string) => {
+  const end = new Date(endDate);
+  const today = new Date();
+
+  // Ajustar el objeto Date para que solo contenga la parte de la fecha, sin la hora
+  today.setHours(0, 0, 0, 0); // Establece la hora a 00:00:00 para evitar diferencias por tiempo
+
+  const timeDiff = end.getTime() - today.getTime();
+  const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+  return daysDiff >= 0 ? daysDiff : 0; // Si los días restantes son negativos, devuelve 0
+};
+
 const UserSearch = () => {
   const [idNumber, setIdNumber] = useState('');
   const [userData, setUserData] = useState<{
@@ -14,6 +27,7 @@ const UserSearch = () => {
   } | null>(null);
   const [daysRemaining, setDaysRemaining] = useState<number | null>(null); // Para mostrar los días restantes
   const [showErrorAlert, setShowErrorAlert] = useState(false);
+  const [endDate, setEndDate] = useState<string | null>(null); // Para mostrar la fecha de fin
 
   const handleSearch = () => {
     const storedUsers = localStorage.getItem('users');
@@ -25,7 +39,7 @@ const UserSearch = () => {
       if (foundUser) {
         console.log('Usuario encontrado:', foundUser);
 
-        // Verificar los días restantes en el arreglo "subscriptions"
+        // Verificar la suscripción del usuario en el arreglo "subscriptions"
         const storedSubscriptions = localStorage.getItem('subscriptions');
         if (storedSubscriptions) {
           const subscriptions = JSON.parse(storedSubscriptions);
@@ -36,9 +50,12 @@ const UserSearch = () => {
           console.log('Suscripción encontrada para el usuario:', userSubscription);
 
           if (userSubscription) {
-            setDaysRemaining(userSubscription.days); // Establece los días restantes
+            const remainingDays = calculateDaysRemaining(userSubscription.endDate); // Calcula los días restantes
+            setDaysRemaining(remainingDays);
+            setEndDate(userSubscription.endDate); // Establece la fecha de fin
           } else {
             setDaysRemaining(0); // Si no se encuentra la suscripción, muestra 0 días
+            setEndDate(null);
           }
         }
         setUserData(foundUser);
@@ -49,6 +66,7 @@ const UserSearch = () => {
         }, 2000);
         setUserData(null);
         setDaysRemaining(null);
+        setEndDate(null);
       }
     }
   };
@@ -118,6 +136,9 @@ const UserSearch = () => {
                       <li><strong>Teléfono de Emergencia:</strong> {userData.emergencyContactPhone}</li>
                     </ul>
                     <p><strong>Plan de Gimnasio:</strong> {userData.gymPlan}</p>
+                    {endDate && (
+                      <p><strong>Fecha de Fin del Plan:</strong> {endDate}</p>
+                    )}
                     {daysRemaining !== null && (
                       <p><strong>Días Restantes del Plan:</strong> {daysRemaining} días</p>
                     )}

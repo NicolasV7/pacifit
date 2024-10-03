@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FaEdit, FaSearch, FaTrash } from 'react-icons/fa'; // Asegúrate de instalar react-icons
+import { FaEdit, FaSearch, FaTrash } from 'react-icons/fa';
 import Breadcrumb from '../components/Breadcrumbs/Breadcrumb';
 
 interface User {
@@ -10,7 +10,7 @@ interface User {
   bloodType: string;
   emergencyContactName: string;
   emergencyContactPhone: string;
-  gymPlan: string; // Nuevo campo para el plan de gimnasio
+  gymPlan: string; // Campo para el plan de gimnasio
 }
 
 interface GymPlan {
@@ -19,25 +19,43 @@ interface GymPlan {
   days: number;
 }
 
+interface Subscription {
+  idNumber: string;
+  days: number;
+  endDate: string;
+  daysRemaining: number;
+}
+
 const UserList: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [editingUser, setEditingUser] = useState<User | null>(null); // Usuario que se está editando
-  const [gymPlans, setGymPlans] = useState<GymPlan[]>([]); // Planes disponibles del gimnasio
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [gymPlans, setGymPlans] = useState<GymPlan[]>([]);
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
 
   useEffect(() => {
-    // Recupera los usuarios almacenados en el localStorage
     const storedUsers = localStorage.getItem('users');
     if (storedUsers) {
-      const parsedUsers = JSON.parse(storedUsers);
-      setUsers(parsedUsers);
+      setUsers(JSON.parse(storedUsers));
     }
 
-    // Recupera los planes de gimnasio almacenados en localStorage
     const storedPlans = localStorage.getItem('gymPlans');
     if (storedPlans) {
-      const parsedPlans = JSON.parse(storedPlans);
-      setGymPlans(parsedPlans);
+      setGymPlans(JSON.parse(storedPlans));
+    }
+
+    const storedSubscriptions = localStorage.getItem('subscriptions');
+    if (storedSubscriptions) {
+      const parsedSubscriptions = JSON.parse(storedSubscriptions);
+      const updatedSubscriptions = parsedSubscriptions.map((subscription: Subscription) => {
+        const updatedDaysRemaining = calculateDaysRemaining(subscription.endDate);
+        return {
+          ...subscription,
+          daysRemaining: updatedDaysRemaining,
+        };
+      });
+      setSubscriptions(updatedSubscriptions);
+      localStorage.setItem('subscriptions', JSON.stringify(updatedSubscriptions));
     }
   }, []);
 
@@ -57,7 +75,21 @@ const UserList: React.FC = () => {
   };
 
   const handleEditUser = (user: User) => {
-    setEditingUser(user); // Establece el usuario que se está editando
+    setEditingUser(user);
+  };
+
+  const calculateEndDate = (startDate: Date, totalDays: number): string => {
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + totalDays);
+    return endDate.toISOString().split('T')[0];
+  };
+
+  const calculateDaysRemaining = (endDate: string): number => {
+    const today = new Date();
+    const finalDate = new Date(endDate);
+    const differenceInTime = finalDate.getTime() - today.getTime();
+    const totalRemainingDays = Math.ceil(differenceInTime / (1000 * 3600 * 24));
+    return totalRemainingDays > 0 ? totalRemainingDays : 0;
   };
 
   const handleUpdateUser = () => {
@@ -67,37 +99,44 @@ const UserList: React.FC = () => {
     setUsers(updatedUsers);
     localStorage.setItem('users', JSON.stringify(updatedUsers));
 
-    // Encuentra el plan seleccionado
     const selectedPlan = gymPlans.find(
       (plan) => plan.name === editingUser?.gymPlan
     );
     if (selectedPlan) {
-      // Guarda los días del plan y el ID de la persona en el localStorage bajo "subscriptions"
+      const today = new Date();
+      let endDate: string;
+
+      if (selectedPlan.days === 15) {
+        endDate = calculateEndDate(today, 30); // Asigna 30 días para el plan de 15 días
+      } else {
+        endDate = calculateEndDate(today, selectedPlan.days);
+      }
+      const daysRemaining = calculateDaysRemaining(endDate);
+
       const subscription = {
         idNumber: editingUser?.idNumber,
         days: selectedPlan.days,
+        endDate: endDate,
+        daysRemaining: daysRemaining,
       };
 
-      // Si ya hay suscripciones almacenadas en localStorage, agregamos la nueva
-      const existingSubscriptions = JSON.parse(localStorage.getItem('subscriptions') || '[]');
-
-      // Agregar o actualizar la suscripción del usuario
+      const existingSubscriptions = JSON.parse(
+        localStorage.getItem('subscriptions') || '[]'
+      );
       const updatedSubscriptions = existingSubscriptions.filter(
         (sub: { idNumber: string }) => sub.idNumber !== editingUser?.idNumber
       );
       updatedSubscriptions.push(subscription);
 
-      // Guardar las suscripciones actualizadas en localStorage
       localStorage.setItem('subscriptions', JSON.stringify(updatedSubscriptions));
+      setSubscriptions(updatedSubscriptions);
     }
 
-    setEditingUser(null); // Limpia el estado de edición
+    setEditingUser(null);
   };
 
-
-  // Función para formatear el precio
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-CO').format(price); // Formato de Colombia
+    return new Intl.NumberFormat('es-CO').format(price);
   };
 
   return (
@@ -105,7 +144,6 @@ const UserList: React.FC = () => {
       <Breadcrumb pageName="Lista de usuarios" />
       <h1 className="text-2xl font-semibold mb-4">Lista de Usuarios</h1>
 
-      {/* Campo de búsqueda */}
       <div className="mb-4 flex items-center border border-gray-300 rounded">
         <FaSearch className="text-gray-400 ml-2" />
         <input
@@ -176,65 +214,62 @@ const UserList: React.FC = () => {
           </tbody>
         </table>
       ) : (
-        <p className="text-gray-500">No hay usuarios registrados.</p>
+        <p>No se encontraron usuarios.</p>
       )}
 
       {editingUser && (
-        <div className="mt-6 p-4 border border-gray-300 rounded">
-          <h2 className="text-xl font-semibold mb-4">Editar Usuario</h2>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Nombre Completo
-            </label>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-4 rounded shadow-md w-1/3">
+            <h2 className="text-xl font-semibold mb-4">Editar Usuario</h2>
+            <label className="block mb-2">Nombre Completo</label>
             <input
               type="text"
               value={editingUser.fullName}
               onChange={(e) =>
                 setEditingUser({ ...editingUser, fullName: e.target.value })
               }
-              className="p-2 w-full border rounded focus:outline-none"
+              className="border border-gray-300 p-2 rounded w-full mb-4"
             />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Teléfono
-            </label>
+            <label className="block mb-2">Teléfono</label>
             <input
               type="text"
               value={editingUser.phoneNumber}
               onChange={(e) =>
                 setEditingUser({ ...editingUser, phoneNumber: e.target.value })
               }
-              className="p-2 w-full border rounded focus:outline-none"
+              className="border border-gray-300 p-2 rounded w-full mb-4"
             />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Plan de Gimnasio
-            </label>
+
+            {/* Nuevo campo de selección para el plan de gimnasio */}
+            <label className="block mb-2">Plan de Gimnasio</label>
             <select
-              value={editingUser?.gymPlan || ''} // Si no hay plan, se asigna un valor vacío
+              value={editingUser.gymPlan}
               onChange={(e) =>
                 setEditingUser({ ...editingUser, gymPlan: e.target.value })
               }
-              className="p-2 w-full border rounded focus:outline-none"
+              className="border border-gray-300 p-2 rounded w-full mb-4"
             >
-              <option value="">Selecciona un plan</option>{' '}
-              {/* La opción predeterminada */}
+              <option value="">Seleccionar plan</option>
               {gymPlans.map((plan) => (
                 <option key={plan.name} value={plan.name}>
-                  {plan.name} - {formatPrice(plan.price)} COP ({plan.days} días)
+                  {plan.name} - {formatPrice(plan.price)} COP - {plan.days} días
                 </option>
               ))}
             </select>
-          </div>
 
-          <button
-            onClick={handleUpdateUser}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Guardar Cambios
-          </button>
+            <button
+              className="bg-blue-600 text-white px-4 py-2 rounded"
+              onClick={handleUpdateUser}
+            >
+              Actualizar
+            </button>
+            <button
+              className="bg-gray-600 text-white px-4 py-2 rounded ml-2"
+              onClick={() => setEditingUser(null)}
+            >
+              Cancelar
+            </button>
+          </div>
         </div>
       )}
     </div>
