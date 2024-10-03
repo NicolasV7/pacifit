@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "vite",
-    "dev": "vite build && electron main.js",
+    "dev": "electron main.js",
     "build": "vite build",
     "package": "npm run build && electron-builder"
   },
