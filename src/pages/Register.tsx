@@ -85,7 +85,7 @@ const UserSubscription = () => {
       if (showModal) {
         handleCloseModal(); // Si el modal está abierto, cerrarlo
       } else {
-        handleSearch(); // Si el modal no está abierto, buscar la suscripción
+        handleSearch(); // Si el modal no está abierto, buscar la suscripción y guardar
       }
     }
   };

@@ -62,6 +62,19 @@ const GymPlans = () => {
     return new Intl.NumberFormat('es-CO').format(price);
   };
 
+  // Función que maneja la tecla Enter para enviar el formulario
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      addPlan();
+    }
+  };
+
+  // Convertir el valor a mayúsculas al escribir en el campo de nombre
+  const handlePlanNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const uppercasedName = e.target.value.toUpperCase();
+    setPlanName(uppercasedName);
+  };
+
   return (
     <>
       {showSuccessAlert && (
@@ -97,7 +110,8 @@ const GymPlans = () => {
                     id="planName"
                     placeholder="Escribe el nombre del plan"
                     value={planName}
-                    onChange={(e) => setPlanName(e.target.value)}
+                    onChange={handlePlanNameChange}
+                    onKeyDown={handleKeyDown}
                     className="w-full rounded border border-stroke bg-gray py-3 pl-4.5 text-black focus:border-primary focus-visible:outline-none dark:border-strokedark dark:bg-meta-4 dark:text-white dark:focus:border-primary"
                   />
                 </div>
@@ -121,6 +135,7 @@ const GymPlans = () => {
                         setPlanPrice(formattedPrice);
                       }
                     }}
+                    onKeyDown={handleKeyDown}
                     className="w-full rounded border border-stroke bg-gray py-3 pl-4.5 text-black focus:border-primary focus-visible:outline-none dark:border-strokedark dark:bg-meta-4 dark:text-white dark:focus:border-primary"
                   />
                 </div>
@@ -135,6 +150,7 @@ const GymPlans = () => {
                     placeholder="Escribe los días del plan"
                     value={planDays}
                     onChange={(e) => setPlanDays(e.target.value)}
+                    onKeyDown={handleKeyDown}
                     className="w-full rounded border border-stroke bg-gray py-3 pl-4.5 text-black focus:border-primary focus-visible:outline-none dark:border-strokedark dark:bg-meta-4 dark:text-white dark:focus:border-primary"
                   />
                 </div>
