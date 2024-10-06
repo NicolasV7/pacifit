@@ -10,14 +10,14 @@
     "package": "npm run build && electron-builder"
   },
   "build": {
-    "appId": "com.tailadmin.reactapp",
+    "appId": "com.pacifit",
     "directories": {
       "buildResources": "assets",
       "output": "release"
     },
     "files": [
-      "dist/**/*",
-      "electron.js"
+      "build/**/*",
+      "main.js"
     ],
     "win": {
       "target": "nsis",
