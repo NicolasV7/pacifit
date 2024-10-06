@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "vite",
-    "dev": "vite build && electron main.js",
+    "dev": "concurrently \"vite\" \"electron main.js\"",
     "build": "vite build",
     "package": "npm run build && electron-builder"
   },
@@ -40,6 +40,7 @@
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@heroicons/react": "^2.1.5",
     "apexcharts": "^3.41.0",
+    "concurrently": "^9.0.1",
     "flatpickr": "^4.6.13",
     "headlessui": "^0.0.0",
     "jsvectormap": "^1.5.3",
