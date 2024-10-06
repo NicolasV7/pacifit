@@ -5,6 +5,15 @@ const ManageData = () => {
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
 
+  // Función para obtener la fecha actual en formato YYYY-MM-DD
+  const getCurrentDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   // Funciones para gestionar los datos de 'users'
   const downloadUserData = () => {
     const data = localStorage.getItem('users');
@@ -13,7 +22,7 @@ const ManageData = () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'users.json';
+      a.download = `users-data-${getCurrentDate()}.json`; // Nombre del archivo con fecha
       a.click();
       URL.revokeObjectURL(url);
       setShowSuccessAlert(true);
@@ -68,7 +77,7 @@ const ManageData = () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'subscriptions.json';
+      a.download = `subscriptions-data-${getCurrentDate()}.json`; // Nombre del archivo con fecha
       a.click();
       URL.revokeObjectURL(url);
       setShowSuccessAlert(true);

@@ -8,4 +8,4 @@ scriptPath = objFSO.GetParentFolderName(WScript.ScriptFullName)
 command = "cmd /c cd " & scriptPath & " && git pull origin main"
 
 ' Ejecutar el comando en una ventana de CMD
-objShell.Run command, 1, true
+objShell.Run command, 1, trues

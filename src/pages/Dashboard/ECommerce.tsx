@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import CardDataStats from '../../components/CardDataStats';
 import ChartOne from '../../components/Charts/ChartOne';
 import ChartThree from '../../components/Charts/ChartThree';
@@ -8,6 +8,48 @@ import MapOne from '../../components/Maps/MapOne';
 import TableOne from '../../components/Tables/TableOne';
 
 const ECommerce: React.FC = () => {
+  const [totalUsers, setTotalUsers] = React.useState(0);
+  const [previousTotalUsers, setPreviousTotalUsers] = React.useState(0);
+  const [totalSubscribers, setTotalSubscribers] = React.useState(0);
+  const [previousTotalSubscribers, setPreviousTotalSubscribers] = React.useState(0);
+
+
+  useEffect(() => {
+    const previousUsers = JSON.parse(localStorage.getItem('previousUsers') || '[]');
+    const previousSubscribers = JSON.parse(localStorage.getItem('previousSubscriptions') || '[]');
+
+    // Solo si existen datos previos se actualizan
+    if (previousUsers.length > 0) setPreviousTotalUsers(previousUsers.length);
+    if (previousSubscribers.length > 0) setPreviousTotalSubscribers(previousSubscribers.length);
+
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const subscribers = JSON.parse(localStorage.getItem('subscriptions') || '[]');
+
+    setTotalUsers(users.length);
+    setTotalSubscribers(subscribers.length);
+  }, []);
+
+  useEffect(() => {
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const subscribers = JSON.parse(localStorage.getItem('subscriptions') || '[]');
+
+    // Se actualizan los datos previos en el localStorage al cambiar los totales
+    localStorage.setItem('previousUsers', JSON.stringify(users));
+    localStorage.setItem('previousSubscriptions', JSON.stringify(subscribers));
+  }, [totalUsers, totalSubscribers]);
+
+
+  const calculatePercentage = (current: number, previous: number) => {
+    if (previous === 0 && current === 0) return '0%';
+    if (previous === 0) return '100%';
+    const percentage = ((current - previous) / previous) * 100;
+    return `${percentage.toFixed(2)}%`;
+  }
+
+
+  const usersPercentage = calculatePercentage(totalUsers, previousTotalUsers);
+  const subscribersPercentage = calculatePercentage(totalSubscribers, previousTotalSubscribers);
+
   return (
     <>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5">
@@ -53,7 +95,7 @@ const ECommerce: React.FC = () => {
             />
           </svg>
         </CardDataStats>
-        <CardDataStats title="Total Product" total="2.450" rate="2.59%" levelUp>
+        <CardDataStats title="Subscripciones Totales" total={totalSubscribers.toString()} rate={subscribersPercentage} levelUp>
           <svg
             className="fill-primary dark:fill-white"
             width="22"
@@ -72,7 +114,7 @@ const ECommerce: React.FC = () => {
             />
           </svg>
         </CardDataStats>
-        <CardDataStats title="Total Users" total="3.456" rate="0.95%" levelDown>
+        <CardDataStats title="Usuarios Totales" total={totalUsers.toString()} rate={usersPercentage} levelDown>
           <svg
             className="fill-primary dark:fill-white"
             width="22"
