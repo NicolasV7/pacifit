@@ -195,12 +195,6 @@ const ManageData = () => {
                   >
                     Descargar Datos de Usuarios
                   </button>
-                  <button
-                    onClick={clearUserData}
-                    className="rounded border border-red-600 bg-transparent px-6 py-2.5 text-red-600 transition duration-200 hover:bg-red-600 hover:text-white"
-                  >
-                    Limpiar Datos de Usuarios
-                  </button>
                 </div>
                 <input
                   type="file"
@@ -216,12 +210,6 @@ const ManageData = () => {
                     className="rounded bg-primary px-6 py-2.5 text-white transition duration-200 hover:bg-opacity-80"
                   >
                     Descargar Datos de Suscripciones
-                  </button>
-                  <button
-                    onClick={clearSubscriptionData}
-                    className="rounded border border-red-600 bg-transparent px-6 py-2.5 text-red-600 transition duration-200 hover:bg-red-600 hover:text-white"
-                  >
-                    Limpiar Datos de Suscripciones
                   </button>
                 </div>
                 <input

@@ -34,6 +34,7 @@ const UserList: React.FC = () => {
   const [gymPlans, setGymPlans] = useState<GymPlan[]>([]);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [selectedEndDate, setSelectedEndDate] = useState<string | null>(null); // Para el calendario
+  const [deletingUser, setDeletingUser] = useState<User | null>(null); // Nuevo estado para el usuario que se va a eliminar
 
   useEffect(() => {
     const storedUsers = localStorage.getItem('users');
@@ -81,6 +82,7 @@ const UserList: React.FC = () => {
     const updatedUsers = users.filter((user) => user.idNumber !== idNumber);
     setUsers(updatedUsers);
     localStorage.setItem('users', JSON.stringify(updatedUsers));
+    setDeletingUser(null); // Cerrar el modal después de confirmar la eliminación
   };
 
   const handleEditUser = (user: User) => {
@@ -129,19 +131,17 @@ const UserList: React.FC = () => {
       let endDate: string;
 
       if (existingSubscription) {
-        // Usar la fecha seleccionada si existe, o la fecha existente en la suscripción
         endDate = selectedEndDate || existingSubscription.endDate;
-
-        // Mantenemos los días restantes igual a los días del plan
         const updatedSubscription = {
           ...existingSubscription,
           endDate: endDate,
-          daysRemaining: selectedPlan.days, // Asegurarse de que daysRemaining sea igual a days
+          daysRemaining: selectedPlan.days,
         };
 
-        // Actualizar las suscripciones en el estado
         const updatedSubscriptions = subscriptions.map((sub) =>
-          sub.idNumber === updatedSubscription.idNumber ? updatedSubscription : sub,
+          sub.idNumber === updatedSubscription.idNumber
+            ? updatedSubscription
+            : sub,
         );
 
         localStorage.setItem(
@@ -150,20 +150,22 @@ const UserList: React.FC = () => {
         );
         setSubscriptions(updatedSubscriptions);
       } else {
-        // Si no hay suscripción existente, calcular la fecha de finalización
         endDate = calculateEndDateAsOneMonth(new Date());
 
         const newSubscription = {
           idNumber: formattedUser.idNumber,
           days: selectedPlan.days,
           endDate: endDate,
-          daysRemaining: selectedPlan.days, // Asegurarse de que daysRemaining sea igual a days
+          daysRemaining: selectedPlan.days,
         };
 
         const existingSubscriptions = JSON.parse(
           localStorage.getItem('subscriptions') || '[]',
         );
-        const updatedSubscriptions = [...existingSubscriptions, newSubscription];
+        const updatedSubscriptions = [
+          ...existingSubscriptions,
+          newSubscription,
+        ];
 
         localStorage.setItem(
           'subscriptions',
@@ -176,12 +178,9 @@ const UserList: React.FC = () => {
     setEditingUser(null);
   };
 
-
-
-
   const calculateEndDateAsOneMonth = (startDate: Date): string => {
     const endDate = new Date(startDate);
-    endDate.setMonth(endDate.getMonth() + 1);  // Sumar un mes exacto
+    endDate.setMonth(endDate.getMonth() + 1);
     return endDate.toISOString().split('T')[0];
   };
 
@@ -191,6 +190,10 @@ const UserList: React.FC = () => {
 
   const handleCloseEditModal = () => {
     setEditingUser(null);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setDeletingUser(null); // Cerrar el modal de eliminación
   };
 
   return (
@@ -258,7 +261,7 @@ const UserList: React.FC = () => {
                   </button>
                   <button
                     className="text-red-600 hover:text-red-800 ml-2"
-                    onClick={() => handleDeleteUser(user.idNumber)}
+                    onClick={() => setDeletingUser(user)} // Mostrar el modal de confirmación al hacer clic
                   >
                     <FaTrash />
                   </button>
@@ -340,6 +343,41 @@ const UserList: React.FC = () => {
             >
               Cancelar
             </button>
+          </div>
+        </div>
+      )}
+
+      {deletingUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-4 rounded shadow-md w-1/3 relative">
+            {/* Botón de "X" para cerrar el modal */}
+            <button
+              className="absolute top-2 right-2 text-gray-600 hover:text-gray-800"
+              onClick={handleCloseDeleteModal}
+            >
+              <AiOutlineClose size={20} />
+            </button>
+
+            <h2 className="text-xl font-semibold mb-4">Confirmar Eliminación</h2>
+            <p>
+              ¿Estás seguro de que deseas eliminar a{' '}
+              <strong>{deletingUser.fullName}</strong>?
+            </p>
+
+            <div className="mt-4 flex justify-end">
+              <button
+                className="bg-red-600 text-white px-4 py-2 rounded"
+                onClick={() => handleDeleteUser(deletingUser.idNumber)}
+              >
+                Eliminar
+              </button>
+              <button
+                className="bg-gray-600 text-white px-4 py-2 rounded ml-2"
+                onClick={handleCloseDeleteModal}
+              >
+                Cancelar
+              </button>
+            </div>
           </div>
         </div>
       )}
