@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import LogoIcon from '../../images/logo/logo-icon.svg';
-import DarkModeSwitcher from './DarkModeSwitcher';
 
 const Header = (props: {
   sidebarOpen: string | boolean | undefined;
@@ -56,14 +55,6 @@ const Header = (props: {
           <Link className="block flex-shrink-0 lg:hidden" to="/">
             <img src={LogoIcon} alt="Logo" />
           </Link>
-        </div>
-
-        <div className="flex items-center gap-3 2xsm:gap-7">
-          <ul className="flex items-center gap-2 2xsm:gap-4">
-            {/* <!-- Dark Mode Toggler --> */}
-            <DarkModeSwitcher />
-            {/* <!-- Dark Mode Toggler --> */}
-          </ul>
         </div>
       </div>
     </header>

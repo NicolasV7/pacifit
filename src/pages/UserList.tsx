@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FaEdit, FaSearch, FaTrash } from 'react-icons/fa';
+import { AiOutlineClose } from 'react-icons/ai'; // Importamos el icono para la "X"
 import Breadcrumb from '../components/Breadcrumbs/Breadcrumb';
 
 interface User {
@@ -32,6 +33,7 @@ const UserList: React.FC = () => {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [gymPlans, setGymPlans] = useState<GymPlan[]>([]);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [selectedEndDate, setSelectedEndDate] = useState<string | null>(null); // Para el calendario
 
   useEffect(() => {
     const storedUsers = localStorage.getItem('users');
@@ -47,15 +49,22 @@ const UserList: React.FC = () => {
     const storedSubscriptions = localStorage.getItem('subscriptions');
     if (storedSubscriptions) {
       const parsedSubscriptions = JSON.parse(storedSubscriptions);
-      const updatedSubscriptions = parsedSubscriptions.map((subscription: Subscription) => {
-        const updatedDaysRemaining = calculateDaysRemaining(subscription.endDate);
-        return {
-          ...subscription,
-          daysRemaining: updatedDaysRemaining,
-        };
-      });
+      const updatedSubscriptions = parsedSubscriptions.map(
+        (subscription: Subscription) => {
+          const updatedDaysRemaining = calculateDaysRemaining(
+            subscription.endDate,
+          );
+          return {
+            ...subscription,
+            daysRemaining: updatedDaysRemaining,
+          };
+        },
+      );
       setSubscriptions(updatedSubscriptions);
-      localStorage.setItem('subscriptions', JSON.stringify(updatedSubscriptions));
+      localStorage.setItem(
+        'subscriptions',
+        JSON.stringify(updatedSubscriptions),
+      );
     }
   }, []);
 
@@ -76,12 +85,14 @@ const UserList: React.FC = () => {
 
   const handleEditUser = (user: User) => {
     setEditingUser(user);
-  };
-
-  const calculateEndDate = (startDate: Date, totalDays: number): string => {
-    const endDate = new Date(startDate);
-    endDate.setDate(endDate.getDate() + totalDays);
-    return endDate.toISOString().split('T')[0];
+    const subscription = subscriptions.find(
+      (sub) => sub.idNumber === user.idNumber,
+    );
+    if (subscription) {
+      const today = new Date();
+      const nextMonth = new Date(today.setMonth(today.getMonth() + 1));
+      setSelectedEndDate(nextMonth.toISOString().split('T')[0]);
+    }
   };
 
   const calculateDaysRemaining = (endDate: string): number => {
@@ -95,54 +106,91 @@ const UserList: React.FC = () => {
   const handleUpdateUser = () => {
     if (!editingUser) return;
 
+    const formattedUser = {
+      ...editingUser,
+      fullName: editingUser.fullName.toUpperCase(),
+    };
+
     const updatedUsers = users.map((user) =>
-      user.idNumber === editingUser.idNumber ? editingUser : user
+      user.idNumber === formattedUser.idNumber ? formattedUser : user,
     );
     setUsers(updatedUsers);
     localStorage.setItem('users', JSON.stringify(updatedUsers));
 
     const selectedPlan = gymPlans.find(
-      (plan) => plan.name === editingUser.gymPlan
+      (plan) => plan.name === formattedUser.gymPlan,
     );
 
     if (selectedPlan) {
-      const today = new Date();
+      const existingSubscription = subscriptions.find(
+        (sub) => sub.idNumber === formattedUser.idNumber,
+      );
+
       let endDate: string;
-      let daysRemaining: number;
 
-      // Asigna 30 días para el plan de 15 días, pero daysRemaining será 15
-      if (selectedPlan.days === 15) {
-        endDate = calculateEndDate(today, 30); // Asigna 30 días para el plan de 15 días
-        daysRemaining = 15; // Aquí se mantiene el número de días restantes como 15
+      if (existingSubscription) {
+        // Usar la fecha seleccionada si existe, o la fecha existente en la suscripción
+        endDate = selectedEndDate || existingSubscription.endDate;
+
+        // Mantenemos los días restantes igual a los días del plan
+        const updatedSubscription = {
+          ...existingSubscription,
+          endDate: endDate,
+          daysRemaining: selectedPlan.days, // Asegurarse de que daysRemaining sea igual a days
+        };
+
+        // Actualizar las suscripciones en el estado
+        const updatedSubscriptions = subscriptions.map((sub) =>
+          sub.idNumber === updatedSubscription.idNumber ? updatedSubscription : sub,
+        );
+
+        localStorage.setItem(
+          'subscriptions',
+          JSON.stringify(updatedSubscriptions),
+        );
+        setSubscriptions(updatedSubscriptions);
       } else {
-        endDate = calculateEndDate(today, selectedPlan.days);
-        daysRemaining = calculateDaysRemaining(endDate); // Calcula días restantes normalmente
+        // Si no hay suscripción existente, calcular la fecha de finalización
+        endDate = calculateEndDateAsOneMonth(new Date());
+
+        const newSubscription = {
+          idNumber: formattedUser.idNumber,
+          days: selectedPlan.days,
+          endDate: endDate,
+          daysRemaining: selectedPlan.days, // Asegurarse de que daysRemaining sea igual a days
+        };
+
+        const existingSubscriptions = JSON.parse(
+          localStorage.getItem('subscriptions') || '[]',
+        );
+        const updatedSubscriptions = [...existingSubscriptions, newSubscription];
+
+        localStorage.setItem(
+          'subscriptions',
+          JSON.stringify(updatedSubscriptions),
+        );
+        setSubscriptions(updatedSubscriptions);
       }
-
-      const subscription = {
-        idNumber: editingUser.idNumber,
-        days: selectedPlan.days,
-        endDate: endDate,
-        daysRemaining: daysRemaining,
-      };
-
-      const existingSubscriptions = JSON.parse(
-        localStorage.getItem('subscriptions') || '[]'
-      );
-      const updatedSubscriptions = existingSubscriptions.filter(
-        (sub: { idNumber: string }) => sub.idNumber !== editingUser.idNumber
-      );
-      updatedSubscriptions.push(subscription);
-
-      localStorage.setItem('subscriptions', JSON.stringify(updatedSubscriptions));
-      setSubscriptions(updatedSubscriptions);
     }
 
     setEditingUser(null);
   };
 
+
+
+
+  const calculateEndDateAsOneMonth = (startDate: Date): string => {
+    const endDate = new Date(startDate);
+    endDate.setMonth(endDate.getMonth() + 1);  // Sumar un mes exacto
+    return endDate.toISOString().split('T')[0];
+  };
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-CO').format(price);
+  };
+
+  const handleCloseEditModal = () => {
+    setEditingUser(null);
   };
 
   return (
@@ -220,12 +268,20 @@ const UserList: React.FC = () => {
           </tbody>
         </table>
       ) : (
-        <p>No se encontraron usuarios.</p>
+        <p>No se encontraron usuarios</p>
       )}
 
       {editingUser && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-4 rounded shadow-md w-1/3">
+          <div className="bg-white p-4 rounded shadow-md w-1/3 relative">
+            {/* Botón de "X" para cerrar el modal */}
+            <button
+              className="absolute top-2 right-2 text-gray-600 hover:text-gray-800"
+              onClick={handleCloseEditModal}
+            >
+              <AiOutlineClose size={20} />
+            </button>
+
             <h2 className="text-xl font-semibold mb-4">Editar Usuario</h2>
             <label className="block mb-2">Nombre Completo</label>
             <input
@@ -249,7 +305,7 @@ const UserList: React.FC = () => {
             {/* Nuevo campo de selección para el plan de gimnasio */}
             <label className="block mb-2">Plan de Gimnasio</label>
             <select
-              value={editingUser.gymPlan}
+              value={editingUser.gymPlan || ''}
               onChange={(e) =>
                 setEditingUser({ ...editingUser, gymPlan: e.target.value })
               }
@@ -263,6 +319,15 @@ const UserList: React.FC = () => {
               ))}
             </select>
 
+            {/* Nuevo campo para seleccionar la fecha de finalización (endDate) */}
+            <label className="block mb-2">Fecha de Finalización</label>
+            <input
+              type="date"
+              value={selectedEndDate || ''}
+              onChange={(e) => setSelectedEndDate(e.target.value)}
+              className="border border-gray-300 p-2 rounded w-full mb-4"
+            />
+
             <button
               className="bg-blue-600 text-white px-4 py-2 rounded"
               onClick={handleUpdateUser}
@@ -271,7 +336,7 @@ const UserList: React.FC = () => {
             </button>
             <button
               className="bg-gray-600 text-white px-4 py-2 rounded ml-2"
-              onClick={() => setEditingUser(null)}
+              onClick={handleCloseEditModal}
             >
               Cancelar
             </button>

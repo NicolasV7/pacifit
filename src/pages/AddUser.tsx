@@ -9,52 +9,47 @@ const AddUser = () => {
   const [eps, setEps] = useState('');
   const [emergencyContactName, setEmergencyContactName] = useState('');
   const [emergencyContactPhone, setEmergencyContactPhone] = useState('');
-  const [bloodType, setBloodType] = useState(''); // Valor inicial vacío
-  const [showSuccessAlert, setShowSuccessAlert] = useState(false); // Estado para mostrar la alerta de éxito
-  const [showErrorAlert, setShowErrorAlert] = useState(false); // Estado para mostrar la alerta de error
+  const [bloodType, setBloodType] = useState('');
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+  const [showErrorAlert, setShowErrorAlert] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validar si hay campos vacíos
     if (!fullName || !phoneNumber || !idNumber || !eps || !bloodType || !emergencyContactName || !emergencyContactPhone) {
-      setShowErrorAlert(true); // Mostrar alerta de error
+      setShowErrorAlert(true);
       setTimeout(() => {
-        setShowErrorAlert(false); // Ocultar alerta de error después de 2 segundos
+        setShowErrorAlert(false);
       }, 2000);
       return;
     }
 
-    // Obtener los datos del formulario
     const userData = {
-      fullName,
-      phoneNumber,
-      idNumber,
-      eps,
-      bloodType,
-      emergencyContactName,
-      emergencyContactPhone,
+      fullName: fullName.toUpperCase(),
+      phoneNumber: phoneNumber.toUpperCase(),
+      idNumber: idNumber.toUpperCase(),
+      eps: eps.toUpperCase(),
+      bloodType: bloodType.toUpperCase(),
+      emergencyContactName: emergencyContactName.toUpperCase(),
+      emergencyContactPhone: emergencyContactPhone.toUpperCase(),
     };
 
-    // Guardar en localStorage
     const existingData = JSON.parse(localStorage.getItem('users') || '[]');
     existingData.push(userData);
     localStorage.setItem('users', JSON.stringify(existingData));
 
-    // Limpiar los campos
     setFullName('');
     setPhoneNumber('');
     setIdNumber('');
     setEps('');
-    setBloodType(''); // Limpiar el estado de bloodType
+    setBloodType('');
     setEmergencyContactName('');
     setEmergencyContactPhone('');
 
-    // Mostrar alerta de éxito
     setShowSuccessAlert(true);
     setTimeout(() => {
       setShowSuccessAlert(false);
-    }, 2000); // Desaparecer después de 2 segundos
+    }, 2000);
   };
 
   const downloadData = () => {
@@ -144,7 +139,6 @@ const AddUser = () => {
               </div>
               <div className="p-7">
                 <form onSubmit={handleSubmit}>
-                  {/* Sección Información Personal */}
                   <div className="mb-5.5 flex flex-col gap-5.5 sm:flex-row">
                     <div className="w-full sm:w-1/2">
                       <label
@@ -189,14 +183,14 @@ const AddUser = () => {
                         className="mb-3 block text-sm font-medium text-black dark:text-white"
                         htmlFor="idNumber"
                       >
-                        Número de Identificación
+                        Cédula
                       </label>
                       <input
                         className="w-full rounded border border-stroke bg-gray py-3 pl-4.5 text-black focus:border-primary focus-visible:outline-none dark:border-strokedark dark:bg-meta-4 dark:text-white dark:focus:border-primary"
                         type="text"
                         name="idNumber"
                         id="idNumber"
-                        placeholder="Escribe tu número de identificación"
+                        placeholder="Escribe tu número de cédula"
                         value={idNumber}
                         onChange={(e) => setIdNumber(e.target.value)}
                       />
@@ -210,7 +204,7 @@ const AddUser = () => {
                         EPS
                       </label>
                       <input
-                        className="w-full rounded border border-stroke bg-gray py-3 pl-4.5 text-black focus:border-primary focus-visible:outline-none dark:border-strokedark dark:bg-meta-4 dark:text-white dark:focus:border-primary"
+                        className="w-full rounded border border-stroke bg-gray py-3 pl-4.5 text-black focus:border-primary focus-visible:outline-none dark:border-strokedark dark:bg-meta-4 dark:focus:border-primary"
                         type="text"
                         name="eps"
                         id="eps"
@@ -225,50 +219,54 @@ const AddUser = () => {
                     <BloodType onChange={(selectedBloodType) => setBloodType(selectedBloodType)} />
                   </div>
 
-                  <div className="mb-5.5">
-                    <label
-                      className="mb-3 block text-sm font-medium text-black dark:text-white"
-                      htmlFor="emergencyContactName"
-                    >
-                      Nombre del Contacto
-                    </label>
-                    <input
-                      className="w-full rounded border border-stroke bg-gray py-3 pl-4.5 text-black focus:border-primary focus-visible:outline-none dark:border-strokedark dark:bg-meta-4 dark:text-white dark:focus:border-primary"
-                      type="text"
-                      name="emergencyContactName"
-                      id="emergencyContactName"
-                      placeholder="Escribe el nombre del contacto"
-                      value={emergencyContactName}
-                      onChange={(e) => setEmergencyContactName(e.target.value)}
-                    />
+                  <div className="mb-5.5 flex flex-col gap-5.5 sm:flex-row">
+                    <div className="w-full sm:w-1/2">
+                      <label
+                        className="mb-3 block text-sm font-medium text-black dark:text-white"
+                        htmlFor="emergencyContactName"
+                      >
+                        Nombre de contacto de emergencia
+                      </label>
+                      <input
+                        className="w-full rounded border border-stroke bg-gray py-3 pl-4.5 text-black focus:border-primary focus-visible:outline-none dark:border-strokedark dark:bg-meta-4 dark:text-white dark:focus:border-primary"
+                        type="text"
+                        name="emergencyContactName"
+                        id="emergencyContactName"
+                        placeholder="Escribe el nombre de tu contacto de emergencia"
+                        value={emergencyContactName}
+                        onChange={(e) =>
+                          setEmergencyContactName(e.target.value)
+                        }
+                      />
+                    </div>
+
+                    <div className="w-full sm:w-1/2">
+                      <label
+                        className="mb-3 block text-sm font-medium text-black dark:text-white"
+                        htmlFor="emergencyContactPhone"
+                      >
+                        Teléfono de contacto de emergencia
+                      </label>
+                      <input
+                        className="w-full rounded border border-stroke bg-gray py-3 pl-4.5 text-black focus:border-primary focus-visible:outline-none dark:border-strokedark dark:bg-meta-4 dark:text-white dark:focus:border-primary"
+                        type="text"
+                        name="emergencyContactPhone"
+                        id="emergencyContactPhone"
+                        placeholder="Escribe el teléfono de tu contacto de emergencia"
+                        value={emergencyContactPhone}
+                        onChange={(e) =>
+                          setEmergencyContactPhone(e.target.value)
+                        }
+                      />
+                    </div>
                   </div>
 
-                  <div className="mb-5.5">
-                    <label
-                      className="mb-3 block text-sm font-medium text-black dark:text-white"
-                      htmlFor="emergencyContactPhone"
-                    >
-                      Teléfono del Contacto
-                    </label>
-                    <input
-                      className="w-full rounded border border-stroke bg-gray py-3 pl-4.5 text-black focus:border-primary focus-visible:outline-none dark:border-strokedark dark:bg-meta-4 dark:text-white dark:focus:border-primary"
-                      type="text"
-                      name="emergencyContactPhone"
-                      id="emergencyContactPhone"
-                      placeholder="Escribe el teléfono del contacto"
-                      value={emergencyContactPhone}
-                      onChange={(e) => setEmergencyContactPhone(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="mt-6 flex justify-end">
-                    <button
-                      type="submit"
-                      className="mr-4 rounded bg-primary px-6 py-2.5 text-white transition duration-200 hover:bg-opacity-80"
-                    >
-                      Guardar
-                    </button>
-                  </div>
+                  <button
+                    className="mt-3 flex w-full justify-center rounded bg-primary p-3 font-medium text-gray"
+                    type="submit"
+                  >
+                    Guardar usuario
+                  </button>
                 </form>
               </div>
             </div>

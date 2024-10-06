@@ -1,51 +1,80 @@
 import React, { useState } from 'react';
+import { AiOutlineClose } from 'react-icons/ai'; // Importamos el icono para la "X"
 
 const UserSubscription = () => {
   const [idNumber, setIdNumber] = useState('');
   const [daysRemaining, setDaysRemaining] = useState<number | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
+  const [days, setDays] = useState<number | null>(null);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
+  const [showModal, setShowModal] = useState(false); // Estado para el modal
 
   const handleSearch = () => {
     const storedSubscriptions = localStorage.getItem('subscriptions');
     if (storedSubscriptions) {
-      const subscriptions = JSON.parse(storedSubscriptions);
+      let subscriptions = JSON.parse(storedSubscriptions);
 
-      // Buscar la suscripción del usuario por su idNumber
       const foundSubscription = subscriptions.find(
-        (subscription: { idNumber: string }) => subscription.idNumber === idNumber
+        (subscription: { idNumber: string }) =>
+          subscription.idNumber === idNumber,
       );
 
       if (foundSubscription) {
-        // Descontar un día de daysRemaining si es mayor que 0
-        if (foundSubscription.daysRemaining > 0) {
+        if (foundSubscription.daysRemaining > 0 && foundSubscription.days > 0) {
           const updatedDaysRemaining = foundSubscription.daysRemaining - 1;
+          const updatedDays = foundSubscription.days - 1;
+
           setDaysRemaining(updatedDaysRemaining);
+          setDays(updatedDays);
           setEndDate(foundSubscription.endDate);
 
-          // Actualizar la suscripción en el localStorage
-          const updatedSubscriptions = subscriptions.map((subscription: { idNumber: string }) => {
-            if (subscription.idNumber === idNumber) {
-              return {
-                ...subscription,
-                daysRemaining: updatedDaysRemaining,
-              };
-            }
-            return subscription;
-          });
+          // Si days > 0, actualizar suscripción; si no, eliminarla
+          if (updatedDays > 0) {
+            subscriptions = subscriptions.map(
+              (subscription: { idNumber: string }) => {
+                if (subscription.idNumber === idNumber) {
+                  return {
+                    ...subscription,
+                    daysRemaining: updatedDaysRemaining,
+                    days: updatedDays,
+                  };
+                }
+                return subscription;
+              },
+            );
+          } else {
+            // Si los días llegan a 0, eliminar la suscripción
+            subscriptions = subscriptions.filter(
+              (subscription: { idNumber: string }) =>
+                subscription.idNumber !== idNumber,
+            );
+          }
 
-          localStorage.setItem('subscriptions', JSON.stringify(updatedSubscriptions));
+          // Guardar las suscripciones actualizadas en el localStorage
+          localStorage.setItem('subscriptions', JSON.stringify(subscriptions));
+          setShowModal(true); // Mostrar el modal cuando se encuentre la suscripción
         } else {
-          setDaysRemaining(0); // Si no quedan días restantes
+          setDaysRemaining(0);
+          setDays(0);
           setEndDate(foundSubscription.endDate);
+
+          // Eliminar la suscripción si daysRemaining y days ya son 0
+          subscriptions = subscriptions.filter(
+            (subscription: { idNumber: string }) =>
+              subscription.idNumber !== idNumber,
+          );
+
+          // Actualizar el localStorage
+          localStorage.setItem('subscriptions', JSON.stringify(subscriptions));
+          setShowModal(true); // Mostrar el modal incluso si no quedan días
         }
       } else {
-        // Si no se encuentra la suscripción
         setShowErrorAlert(true);
         setTimeout(() => {
           setShowErrorAlert(false);
         }, 2000);
         setDaysRemaining(null);
+        setDays(null);
         setEndDate(null);
       }
     }
@@ -53,8 +82,17 @@ const UserSubscription = () => {
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      handleSearch();
+      if (showModal) {
+        handleCloseModal(); // Si el modal está abierto, cerrarlo
+      } else {
+        handleSearch(); // Si el modal no está abierto, buscar la suscripción
+      }
     }
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false); // Cerrar el modal
+    setIdNumber(''); // Limpiar el input
   };
 
   return (
@@ -101,20 +139,42 @@ const UserSubscription = () => {
                     Buscar Suscripción
                   </button>
                 </div>
-
-                {daysRemaining !== null && (
-                  <div className="mt-6">
-                    <p><strong>Días Restantes del Plan:</strong> {daysRemaining} días</p>
-                    {endDate && (
-                      <p><strong>Fecha de Fin del Plan:</strong> {endDate}</p>
-                    )}
-                  </div>
-                )}
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-4 rounded shadow-md w-1/3 relative">
+            <button
+              className="absolute top-2 right-2 text-gray-600 hover:text-gray-800"
+              onClick={handleCloseModal}
+            >
+              <AiOutlineClose size={20} />
+            </button>
+
+            <h2 className="text-xl font-semibold mb-4 text-center">
+              Detalles de la Suscripción
+            </h2>
+
+            {/* Bloque centrado */}
+            <div className="flex flex-col items-center justify-center">
+              {/* Estilo para el número de días */}
+              <p className="text-8xl font-bold mb-2">{days}</p>
+              <span className="text-sm">días restantes</span>
+            </div>
+
+            <button
+              className="bg-blue-600 text-white px-4 py-2 rounded mt-4 w-full"
+              onClick={handleCloseModal}
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 };
