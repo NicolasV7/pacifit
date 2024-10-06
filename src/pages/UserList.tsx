@@ -198,7 +198,7 @@ const UserList: React.FC = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <Breadcrumb pageName="Lista de usuarios" />
+      <Breadcrumb pageName="Usuarios" />
       <h1 className="text-2xl font-semibold mb-4">Lista de Usuarios</h1>
 
       <div className="mb-4 flex items-center border border-gray-300 rounded">
