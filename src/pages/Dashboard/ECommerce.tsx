@@ -13,7 +13,6 @@ const ECommerce: React.FC = () => {
   const [totalSubscribers, setTotalSubscribers] = React.useState(0);
   const [previousTotalSubscribers, setPreviousTotalSubscribers] = React.useState(0);
 
-
   useEffect(() => {
     const previousUsers = JSON.parse(localStorage.getItem('previousUsers') || '[]');
     const previousSubscribers = JSON.parse(localStorage.getItem('previousSubscriptions') || '[]');
@@ -30,25 +29,43 @@ const ECommerce: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    // Guardamos el estado previo antes de que cambien los totales
     const users = JSON.parse(localStorage.getItem('users') || '[]');
     const subscribers = JSON.parse(localStorage.getItem('subscriptions') || '[]');
 
-    // Se actualizan los datos previos en el localStorage al cambiar los totales
+    // Guardamos el valor actual en "previous" para la siguiente actualización
     localStorage.setItem('previousUsers', JSON.stringify(users));
     localStorage.setItem('previousSubscriptions', JSON.stringify(subscribers));
   }, [totalUsers, totalSubscribers]);
 
-
+  // Resta opcional a los valores previos antes del cálculo
   const calculatePercentage = (current: number, previous: number) => {
-    if (previous === 0 && current === 0) return '0%';
-    if (previous === 0) return '100%';
-    const percentage = ((current - previous) / previous) * 100;
-    return `${percentage.toFixed(2)}%`;
-  }
+    // Restar 1 al valor previo si lo deseas
+    const adjustedPrevious = previous > 0 ? previous - 1 : previous;
 
+    if (adjustedPrevious === 0 && current === 0) return '0%';
+    if (adjustedPrevious === 0) return '100%';
+    const percentage = ((current - adjustedPrevious) / adjustedPrevious) * 100;
+    return `${percentage.toFixed(2)}%`;
+  };
 
   const usersPercentage = calculatePercentage(totalUsers, previousTotalUsers);
   const subscribersPercentage = calculatePercentage(totalSubscribers, previousTotalSubscribers);
+
+  const clearUsers = () => {
+    localStorage.removeItem('users');
+    localStorage.removeItem('previousUsers');
+    setTotalUsers(0);
+    setPreviousTotalUsers(0);
+  };
+
+  const clearSubscribers = () => {
+    localStorage.removeItem('subscriptions');
+    localStorage.removeItem('previousSubscriptions');
+    setTotalSubscribers(0);
+    setPreviousTotalSubscribers(0);
+  };
+
 
   return (
     <>
@@ -95,7 +112,8 @@ const ECommerce: React.FC = () => {
             />
           </svg>
         </CardDataStats>
-        <CardDataStats title="Subscripciones Totales" total={totalSubscribers.toString()} rate={subscribersPercentage} levelUp>
+        <CardDataStats title="Subscripciones Totales" total={totalSubscribers.toString()} rate={subscribersPercentage} levelDown={parseFloat(usersPercentage) < 0}
+        levelUp={parseFloat(usersPercentage) >= 0}  >
           <svg
             className="fill-primary dark:fill-white"
             width="22"
@@ -114,7 +132,8 @@ const ECommerce: React.FC = () => {
             />
           </svg>
         </CardDataStats>
-        <CardDataStats title="Usuarios Totales" total={totalUsers.toString()} rate={usersPercentage} levelDown>
+        <CardDataStats title="Usuarios Totales" total={totalUsers.toString()} rate={usersPercentage}   levelDown={parseFloat(usersPercentage) < 0}
+        levelUp={parseFloat(usersPercentage) >= 0} >
           <svg
             className="fill-primary dark:fill-white"
             width="22"

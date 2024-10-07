@@ -12,15 +12,14 @@ const createWindow = () => {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js'),
     },
   });
 
   win.setMenu(null);
 
-  win.loadURL('http://localhost:5173');
+  //win.loadURL('http://localhost:5173');
 
-  //win.webContents.openDevTools();
+  win.webContents.openDevTools();
 
   win.webContents.insertCSS(`
     ::-webkit-scrollbar {

@@ -4,6 +4,7 @@ import Breadcrumb from '../components/Breadcrumbs/Breadcrumb';
 const ManageData = () => {
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Función para obtener la fecha actual en formato YYYY-MM-DD
   const getCurrentDate = () => {
@@ -30,6 +31,7 @@ const ManageData = () => {
         setShowSuccessAlert(false);
       }, 2000);
     } else {
+      setErrorMessage('No hay datos de usuarios disponibles para descargar.');
       setShowErrorAlert(true);
       setTimeout(() => {
         setShowErrorAlert(false);
@@ -53,18 +55,23 @@ const ManageData = () => {
         try {
           const json = e.target?.result as string;
           const users = JSON.parse(json);
-          localStorage.setItem('users', JSON.stringify(users));
-          setShowSuccessAlert(true);
-          setTimeout(() => {
-            setShowSuccessAlert(false);
-          }, 2000);
+
+          if (Array.isArray(users)) {
+            localStorage.setItem('users', JSON.stringify(users));
+            setShowSuccessAlert(true);
+          } else {
+            setErrorMessage('El archivo JSON no tiene el formato esperado.');
+            setShowErrorAlert(true);
+          }
         } catch (error) {
+          setErrorMessage('Error al procesar el archivo JSON.');
           setShowErrorAlert(true);
-          setTimeout(() => {
-            setShowErrorAlert(false);
-          }, 2000);
         }
+        setTimeout(() => {
+          setShowErrorAlert(false);
+        }, 2000);
       };
+
       reader.readAsText(file);
     }
   };
@@ -85,6 +92,7 @@ const ManageData = () => {
         setShowSuccessAlert(false);
       }, 2000);
     } else {
+      setErrorMessage('No hay datos de suscripciones disponibles para descargar.');
       setShowErrorAlert(true);
       setTimeout(() => {
         setShowErrorAlert(false);
@@ -114,6 +122,7 @@ const ManageData = () => {
             setShowSuccessAlert(false);
           }, 2000);
         } catch (error) {
+          setErrorMessage('Error al procesar el archivo de suscripciones.');
           setShowErrorAlert(true);
           setTimeout(() => {
             setShowErrorAlert(false);
@@ -179,7 +188,7 @@ const ManageData = () => {
               Error
             </h5>
             <p className="text-base leading-relaxed text-body">
-              No hay datos disponibles para descargar.
+              {errorMessage}
             </p>
           </div>
         </div>
