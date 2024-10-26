@@ -12,6 +12,7 @@ interface User {
   emergencyContactName: string;
   emergencyContactPhone: string;
   gymPlan: string; // Campo para el plan de gimnasio
+  completionDate?: string;
 }
 
 interface GymPlan {
@@ -35,6 +36,8 @@ const UserList: React.FC = () => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [selectedEndDate, setSelectedEndDate] = useState<string | null>(null); // Para el calendario
   const [deletingUser, setDeletingUser] = useState<User | null>(null); // Nuevo estado para el usuario que se va a eliminar
+  const [fechaFinalizacion, setFechaFinalizacion] = useState('');
+
 
   useEffect(() => {
     const storedUsers = localStorage.getItem('users');
@@ -88,12 +91,14 @@ const UserList: React.FC = () => {
   const handleEditUser = (user: User) => {
     setEditingUser(user);
     const subscription = subscriptions.find(
-      (sub) => sub.idNumber === user.idNumber,
+        (sub) => sub.idNumber === user.idNumber,
     );
     if (subscription) {
-      const today = new Date();
-      const nextMonth = new Date(today.setMonth(today.getMonth() + 1));
-      setSelectedEndDate(nextMonth.toISOString().split('T')[0]);
+        setSelectedEndDate(subscription.endDate); // Usa la fecha de finalización existente
+    } else {
+        const today = new Date();
+        const nextMonth = new Date(today.setMonth(today.getMonth() + 1));
+        setSelectedEndDate(nextMonth.toISOString().split('T')[0]);
     }
   };
 
@@ -105,12 +110,14 @@ const UserList: React.FC = () => {
     return totalRemainingDays > 0 ? totalRemainingDays : 0;
   };
 
+
   const handleUpdateUser = () => {
     if (!editingUser) return;
 
     const formattedUser = {
         ...editingUser,
         fullName: editingUser.fullName.toUpperCase(),
+        completionDate: selectedEndDate || new Date().toISOString(), // Actualiza la fecha de finalización aquí
     };
 
     const updatedUsers = users.map((user) =>
@@ -175,6 +182,7 @@ const UserList: React.FC = () => {
     setEditingUser(null);
     setSelectedEndDate(null);
 };
+
 
 
   const calculateEndDateAsOneMonth = (startDate: Date): string => {
