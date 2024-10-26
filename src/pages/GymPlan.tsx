@@ -78,14 +78,16 @@ const GymPlans = () => {
   return (
     <>
       {showSuccessAlert && (
-        <div className="absolute right-30 top-50 z-10 flex w-full max-w-md border-l-6 border-[#34D399] bg-[#34D399] bg-opacity-[15%] px-4 py-3 shadow-md dark:bg-[#1B1B24] dark:bg-opacity-30 md:p-9">
+        <div className="absolute right-5 top-80 z-10 flex w-full max-w-md border-l-6 border-[#34D399] bg-[#34D399] bg-opacity-[15%] px-4 py-3 shadow-md dark:bg-[#1B1B24] dark:bg-opacity-30 md:p-9">
+          <span className="text-green-600">¡Plan agregado con éxito!</span>
           {/* Success Alert */}
+
         </div>
       )}
 
       {showErrorAlert && (
-        <div className="absolute right-30 top-50 z-10 flex w-full max-w-md border-l-6 border-red-600 bg-red-600 bg-opacity-[15%] px-4 py-3 shadow-md dark:bg-[#1B1B24] dark:bg-opacity-30 md:p-9">
-          {/* Error Alert */}
+        <div className="absolute right-5 top-80 z-10 flex w-full max-w-md border-l-6 border-red-600 bg-red-600 bg-opacity-[15%] px-4 py-3 shadow-md dark:bg-[#1B1B24] dark:bg-opacity-30 md:p-9 ml-10">
+          <span className="text-red-600">Error: Todos los campos son obligatorios y deben ser válidos.</span>
         </div>
       )}
 

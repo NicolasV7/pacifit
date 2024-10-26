@@ -77,7 +77,7 @@ const UserSearch = () => {
   return (
     <>
       {showErrorAlert && (
-        <div className="absolute right-30 top-50 z-10 flex w-full max-w-md border-l-6 border-red-600 bg-red-600 bg-opacity-[15%] px-4 py-3 shadow-md dark:bg-[#1B1B24] dark:bg-opacity-30 md:p-9">
+         <div className="absolute right-15 top-80 z-10 flex w-full max-w-sm border-l-6 border-red-600 bg-red-600 bg-opacity-[15%] px-2 py-2 shadow-md dark:bg-[#1B1B24] dark:bg-opacity-30 md:p-5">
           <p className="text-red-600">Cédula no encontrada.</p>
         </div>
       )}
