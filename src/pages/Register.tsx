@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AiOutlineClose } from 'react-icons/ai'; // Importamos el icono para la "X"
+import { AiOutlineClose } from 'react-icons/ai';
 
 const UserSubscription = () => {
   const [idNumber, setIdNumber] = useState('');
@@ -7,7 +7,7 @@ const UserSubscription = () => {
   const [endDate, setEndDate] = useState<string | null>(null);
   const [days, setDays] = useState<number | null>(null);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
-  const [showModal, setShowModal] = useState(false); // Estado para el modal
+  const [showModal, setShowModal] = useState(false);
 
   const handleSearch = () => {
     const storedSubscriptions = localStorage.getItem('subscriptions');
@@ -28,7 +28,6 @@ const UserSubscription = () => {
           setDays(updatedDays);
           setEndDate(foundSubscription.endDate);
 
-          // Si days > 0, actualizar suscripción; si no, eliminarla
           if (updatedDays > 0) {
             subscriptions = subscriptions.map(
               (subscription: { idNumber: string }) => {
@@ -43,30 +42,26 @@ const UserSubscription = () => {
               },
             );
           } else {
-            // Si los días llegan a 0, eliminar la suscripción
             subscriptions = subscriptions.filter(
               (subscription: { idNumber: string }) =>
                 subscription.idNumber !== idNumber,
             );
           }
 
-          // Guardar las suscripciones actualizadas en el localStorage
           localStorage.setItem('subscriptions', JSON.stringify(subscriptions));
-          setShowModal(true); // Mostrar el modal cuando se encuentre la suscripción
+          setShowModal(true);
         } else {
           setDaysRemaining(0);
           setDays(0);
           setEndDate(foundSubscription.endDate);
 
-          // Eliminar la suscripción si daysRemaining y days ya son 0
           subscriptions = subscriptions.filter(
             (subscription: { idNumber: string }) =>
               subscription.idNumber !== idNumber,
           );
 
-          // Actualizar el localStorage
           localStorage.setItem('subscriptions', JSON.stringify(subscriptions));
-          setShowModal(true); // Mostrar el modal incluso si no quedan días
+          setShowModal(true);
         }
       } else {
         setShowErrorAlert(true);
@@ -83,16 +78,16 @@ const UserSubscription = () => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       if (showModal) {
-        handleCloseModal(); // Si el modal está abierto, cerrarlo
+        handleCloseModal();
       } else {
-        handleSearch(); // Si el modal no está abierto, buscar la suscripción y guardar
+        handleSearch();
       }
     }
   };
 
   const handleCloseModal = () => {
-    setShowModal(false); // Cerrar el modal
-    setIdNumber(''); // Limpiar el input
+    setShowModal(false);
+    setIdNumber('');
   };
 
   return (
@@ -159,11 +154,14 @@ const UserSubscription = () => {
               Detalles de la Suscripción
             </h2>
 
-            {/* Bloque centrado */}
             <div className="flex flex-col items-center justify-center">
-              {/* Estilo para el número de días */}
               <p className="text-8xl font-bold mb-2">{days}</p>
               <span className="text-sm">días restantes</span>
+              {endDate && (
+                <p className="mt-4 text-lg">
+                  Fecha de Finalización: <strong>{endDate}</strong>
+                </p>
+              )}
             </div>
 
             <button

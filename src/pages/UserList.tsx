@@ -109,74 +109,73 @@ const UserList: React.FC = () => {
     if (!editingUser) return;
 
     const formattedUser = {
-      ...editingUser,
-      fullName: editingUser.fullName.toUpperCase(),
+        ...editingUser,
+        fullName: editingUser.fullName.toUpperCase(),
     };
 
     const updatedUsers = users.map((user) =>
-      user.idNumber === formattedUser.idNumber ? formattedUser : user,
+        user.idNumber === formattedUser.idNumber ? formattedUser : user,
     );
     setUsers(updatedUsers);
     localStorage.setItem('users', JSON.stringify(updatedUsers));
 
     const selectedPlan = gymPlans.find(
-      (plan) => plan.name === formattedUser.gymPlan,
+        (plan) => plan.name === formattedUser.gymPlan,
     );
 
     if (selectedPlan) {
-      const existingSubscription = subscriptions.find(
-        (sub) => sub.idNumber === formattedUser.idNumber,
-      );
-
-      let endDate: string;
-
-      if (existingSubscription) {
-        endDate = selectedEndDate || existingSubscription.endDate;
-        const updatedSubscription = {
-          ...existingSubscription,
-          endDate: endDate,
-          daysRemaining: selectedPlan.days,
-        };
-
-        const updatedSubscriptions = subscriptions.map((sub) =>
-          sub.idNumber === updatedSubscription.idNumber
-            ? updatedSubscription
-            : sub,
+        const existingSubscription = subscriptions.find(
+            (sub) => sub.idNumber === formattedUser.idNumber,
         );
 
-        localStorage.setItem(
-          'subscriptions',
-          JSON.stringify(updatedSubscriptions),
-        );
-        setSubscriptions(updatedSubscriptions);
-      } else {
-        endDate = calculateEndDateAsOneMonth(new Date());
+        let endDate: string;
 
-        const newSubscription = {
-          idNumber: formattedUser.idNumber,
-          days: selectedPlan.days,
-          endDate: endDate,
-          daysRemaining: selectedPlan.days,
-        };
+        if (existingSubscription) {
+            // Usa el endDate seleccionado o el que ya estaba guardado en la suscripción
+            endDate = selectedEndDate || existingSubscription.endDate;
+            const updatedSubscription = {
+                ...existingSubscription,
+                endDate: endDate,
+                daysRemaining: calculateDaysRemaining(endDate),
+            };
 
-        const existingSubscriptions = JSON.parse(
-          localStorage.getItem('subscriptions') || '[]',
-        );
-        const updatedSubscriptions = [
-          ...existingSubscriptions,
-          newSubscription,
-        ];
+            // Actualiza las suscripciones
+            const updatedSubscriptions = subscriptions.map((sub) =>
+                sub.idNumber === updatedSubscription.idNumber
+                    ? updatedSubscription
+                    : sub,
+            );
 
-        localStorage.setItem(
-          'subscriptions',
-          JSON.stringify(updatedSubscriptions),
-        );
-        setSubscriptions(updatedSubscriptions);
-      }
+            setSubscriptions(updatedSubscriptions);
+            localStorage.setItem(
+                'subscriptions',
+                JSON.stringify(updatedSubscriptions),
+            );
+        } else {
+            // Si no hay suscripción existente, crea una nueva
+            endDate = calculateEndDateAsOneMonth(new Date());
+
+            const newSubscription: Subscription = {
+                idNumber: formattedUser.idNumber,
+                days: selectedPlan.days,
+                endDate: endDate,
+                daysRemaining: calculateDaysRemaining(endDate),
+            };
+
+            const updatedSubscriptions = [...subscriptions, newSubscription];
+            setSubscriptions(updatedSubscriptions);
+            localStorage.setItem(
+                'subscriptions',
+                JSON.stringify(updatedSubscriptions),
+            );
+        }
     }
 
+    // Reinicia el usuario en edición y el endDate seleccionado
     setEditingUser(null);
-  };
+    setSelectedEndDate(null);
+};
+
 
   const calculateEndDateAsOneMonth = (startDate: Date): string => {
     const endDate = new Date(startDate);
