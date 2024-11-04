@@ -1,25 +1,10 @@
 @echo off
 cd /d "%~dp0"
 
-echo Actualizando el repositorio...
-git pull origin main
-if errorlevel 1 (
-    echo Error al actualizar el repositorio.
-    exit /b 1
-)
+start /b git pull origin main > NUL 2>&1
 
-echo Instalando dependencias...
-npm install
-if errorlevel 1 (
-    echo Error al instalar dependencias.
-    exit /b 1
-)
+start /b call npm install > NUL 2>&1
 
-echo Iniciando la aplicación...
-npm run dev
-if errorlevel 1 (
-    echo Error al iniciar la aplicación.
-    exit /b 1
-)
+start /b npm run dev > NUL 2>&1
 
 exit
