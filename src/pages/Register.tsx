@@ -6,61 +6,50 @@ const UserSubscription = () => {
   const [daysRemaining, setDaysRemaining] = useState<number | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   const [days, setDays] = useState<number | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
-  const handleSearch = () => {
-    const storedSubscriptions = localStorage.getItem('subscriptions');
-    if (storedSubscriptions) {
-      let subscriptions = JSON.parse(storedSubscriptions);
+  const handleSearch = async () => {
+    if (!idNumber) {
+      setShowErrorAlert(true);
+      setTimeout(() => {
+        setShowErrorAlert(false);
+      }, 2000);
+      return;
+    }
 
-      const foundSubscription = subscriptions.find(
-        (subscription: { idNumber: string }) =>
-          subscription.idNumber === idNumber,
-      );
+    try {
+      const subscriptionResponse = await fetch(`http://localhost:5000/api/subscriptions/${idNumber}`);
+      if (subscriptionResponse.ok) {
+        const foundSubscription = await subscriptionResponse.json();
+        console.log('Suscripción encontrada:', foundSubscription);
 
-      if (foundSubscription) {
-        if (foundSubscription.daysRemaining > 0 && foundSubscription.days > 0) {
-          const updatedDaysRemaining = foundSubscription.daysRemaining - 1;
-          const updatedDays = foundSubscription.days - 1;
+        const formattedEndDate = foundSubscription.end_date.split('T')[0];
+
+        setEndDate(formattedEndDate);
+        setStatus(foundSubscription.status);
+
+        if (foundSubscription.status === 'Activo' && foundSubscription.days_remaining > 0) {
+          const updatedDaysRemaining = foundSubscription.days_remaining - 1;
 
           setDaysRemaining(updatedDaysRemaining);
-          setDays(updatedDays);
-          setEndDate(foundSubscription.endDate);
+          setDays(updatedDaysRemaining);
 
-          if (updatedDays > 0) {
-            subscriptions = subscriptions.map(
-              (subscription: { idNumber: string }) => {
-                if (subscription.idNumber === idNumber) {
-                  return {
-                    ...subscription,
-                    daysRemaining: updatedDaysRemaining,
-                    days: updatedDays,
-                  };
-                }
-                return subscription;
-              },
-            );
-          } else {
-            subscriptions = subscriptions.filter(
-              (subscription: { idNumber: string }) =>
-                subscription.idNumber !== idNumber,
-            );
-          }
+          // Update the subscription on the server
+          await fetch(`http://localhost:5000/api/subscriptions/${idNumber}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              endDate: foundSubscription.end_date,
+              daysRemaining: updatedDaysRemaining,
+            }),
+          });
 
-          localStorage.setItem('subscriptions', JSON.stringify(subscriptions));
           setShowModal(true);
         } else {
           setDaysRemaining(0);
           setDays(0);
-          setEndDate(foundSubscription.endDate);
-
-          subscriptions = subscriptions.filter(
-            (subscription: { idNumber: string }) =>
-              subscription.idNumber !== idNumber,
-          );
-
-          localStorage.setItem('subscriptions', JSON.stringify(subscriptions));
           setShowModal(true);
         }
       } else {
@@ -71,7 +60,18 @@ const UserSubscription = () => {
         setDaysRemaining(null);
         setDays(null);
         setEndDate(null);
+        setStatus(null);
       }
+    } catch (error) {
+      console.error('Error al buscar la suscripción:', error);
+      setShowErrorAlert(true);
+      setTimeout(() => {
+        setShowErrorAlert(false);
+      }, 2000);
+      setDaysRemaining(null);
+      setDays(null);
+      setEndDate(null);
+      setStatus(null);
     }
   };
 
@@ -92,12 +92,11 @@ const UserSubscription = () => {
 
   return (
     <>
-   {showErrorAlert && (
-      <div className="absolute right-15 top-70 z-10 flex w-full max-w-sm border-l-6 border-red-600 bg-red-600 bg-opacity-[15%] px-2 py-2 shadow-md dark:bg-[#1B1B24] dark:bg-opacity-30 md:p-5">
-        <p className="text-red-600">Suscripción no encontrada.</p>
-      </div>
-    )}
-
+      {showErrorAlert && (
+        <div className="absolute right-15 top-70 z-10 flex w-full max-w-sm border-l-6 border-red-600 bg-red-600 bg-opacity-[15%] px-2 py-2 shadow-md dark:bg-[#1B1B24] dark:bg-opacity-30 md:p-5">
+          <p className="text-red-600">Suscripción no encontrada o cédula inválida.</p>
+        </div>
+      )}
 
       <div className="mx-auto max-w-270">
         <div className="grid grid-cols-5 gap-8">
@@ -143,7 +142,7 @@ const UserSubscription = () => {
 
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-4 rounded shadow-md w-1/3 relative">
+          <div className="bg-white p-6 rounded shadow-md w-1/3 relative">
             <button
               className="absolute top-2 right-2 text-gray-600 hover:text-gray-800"
               onClick={handleCloseModal}
@@ -156,12 +155,18 @@ const UserSubscription = () => {
             </h2>
 
             <div className="flex flex-col items-center justify-center">
-              <p className="text-8xl font-bold mb-2">{days}</p>
-              <span className="text-sm">días restantes</span>
-              {endDate && (
-                <p className="mt-4 text-lg">
-                  Fecha de Finalización: <strong>{endDate}</strong>
-                </p>
+              {status === 'Activo' ? (
+                <>
+                  <p className="text-8xl font-bold mb-2">{days}</p>
+                  <span className="text-sm">días restantes</span>
+                  {endDate && (
+                    <p className="mt-4 text-lg">
+                      Fecha de Finalización: <strong>{endDate}</strong>
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="text-8xl font-bold text-red-600">Inactiva</p>
               )}
             </div>
 

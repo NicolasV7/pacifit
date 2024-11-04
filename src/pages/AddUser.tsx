@@ -13,10 +13,10 @@ const AddUser = () => {
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!fullName || !phoneNumber || !idNumber || !eps || !bloodType || !emergencyContactName || !emergencyContactPhone) {
+    if (!fullName.trim() || !phoneNumber.trim() || !idNumber.trim() || !eps.trim() || !bloodType.trim() || !emergencyContactName.trim() || !emergencyContactPhone.trim()) {
       setShowErrorAlert(true);
       setTimeout(() => {
         setShowErrorAlert(false);
@@ -34,22 +34,41 @@ const AddUser = () => {
       emergencyContactPhone: emergencyContactPhone.toUpperCase(),
     };
 
-    const existingData = JSON.parse(localStorage.getItem('users') || '[]');
-    existingData.push(userData);
-    localStorage.setItem('users', JSON.stringify(existingData));
+    try {
+      const response = await fetch('http://localhost:5000/api/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
 
-    setFullName('');
-    setPhoneNumber('');
-    setIdNumber('');
-    setEps('');
-    setBloodType('');
-    setEmergencyContactName('');
-    setEmergencyContactPhone('');
-
-    setShowSuccessAlert(true);
-    setTimeout(() => {
-      setShowSuccessAlert(false);
-    }, 2000);
+      if (response.ok) {
+        setShowSuccessAlert(true);
+        setTimeout(() => {
+          setShowSuccessAlert(false);
+        }, 2000);
+        // Limpia los campos del formulario
+        setFullName('');
+        setPhoneNumber('');
+        setIdNumber('');
+        setEps('');
+        setBloodType('');
+        setEmergencyContactName('');
+        setEmergencyContactPhone('');
+      } else {
+        setShowErrorAlert(true);
+        setTimeout(() => {
+          setShowErrorAlert(false);
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Error al enviar los datos:', error);
+      setShowErrorAlert(true);
+      setTimeout(() => {
+        setShowErrorAlert(false);
+      }, 2000);
+    }
   };
 
   return (

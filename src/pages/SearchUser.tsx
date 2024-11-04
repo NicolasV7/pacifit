@@ -11,39 +11,43 @@ const UserSearch = () => {
     bloodType: string;
     emergencyContactName: string;
     emergencyContactPhone: string;
-    gymPlan: string;
+    gymPlanName: string;
+    gymPlanPrice: number;
+    gymPlanDays: number;
   } | null>(null);
   const [daysRemaining, setDaysRemaining] = useState<number | null>(null);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
   const [endDate, setEndDate] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
 
-  const handleSearch = () => {
-    const storedUsers = localStorage.getItem('users');
-    if (storedUsers) {
-      const users = JSON.parse(storedUsers);
-
-      const foundUser = users.find((user: { idNumber: string }) => user.idNumber === idNumber);
-
-      if (foundUser) {
+  const handleSearch = async () => {
+    try {
+      const userResponse = await fetch(`http://localhost:5000/api/users/${idNumber}`);
+      if (userResponse.ok) {
+        const foundUser = await userResponse.json();
         console.log('Usuario encontrado:', foundUser);
 
-        const storedSubscriptions = localStorage.getItem('subscriptions');
-        if (storedSubscriptions) {
-          const subscriptions = JSON.parse(storedSubscriptions);
-          const userSubscription = subscriptions.find(
-            (subscription: { idNumber: string }) => subscription.idNumber === foundUser.idNumber
-          );
-
-          if (userSubscription) {
-            setDaysRemaining(userSubscription.days);
-            setEndDate(userSubscription.endDate);
-          } else {
-            setDaysRemaining(0);
-            setEndDate(null);
-          }
+        const subscriptionResponse = await fetch(`http://localhost:5000/api/subscriptions/${idNumber}`);
+        if (subscriptionResponse.ok) {
+          const userSubscription = await subscriptionResponse.json();
+          setDaysRemaining(userSubscription.days_remaining);
+          setEndDate(userSubscription.end_date);
+        } else {
+          setDaysRemaining(0);
+          setEndDate(null);
         }
-        setUserData(foundUser);
+
+        setUserData({
+          fullName: foundUser.full_name,
+          phoneNumber: foundUser.phone_number,
+          eps: foundUser.eps,
+          bloodType: foundUser.blood_type,
+          emergencyContactName: foundUser.emergency_contact_name,
+          emergencyContactPhone: foundUser.emergency_contact_phone,
+          gymPlanName: foundUser.gym_plan_name,
+          gymPlanPrice: foundUser.gym_plan_price,
+          gymPlanDays: foundUser.gym_plan_days,
+        });
         setShowModal(true); // Mostrar modal al encontrar el usuario
       } else {
         setShowErrorAlert(true);
@@ -54,6 +58,15 @@ const UserSearch = () => {
         setDaysRemaining(null);
         setEndDate(null);
       }
+    } catch (error) {
+      console.error('Error al buscar el usuario:', error);
+      setShowErrorAlert(true);
+      setTimeout(() => {
+        setShowErrorAlert(false);
+      }, 2000);
+      setUserData(null);
+      setDaysRemaining(null);
+      setEndDate(null);
     }
   };
 
@@ -77,7 +90,7 @@ const UserSearch = () => {
   return (
     <>
       {showErrorAlert && (
-         <div className="absolute right-15 top-80 z-10 flex w-full max-w-sm border-l-6 border-red-600 bg-red-600 bg-opacity-[15%] px-2 py-2 shadow-md dark:bg-[#1B1B24] dark:bg-opacity-30 md:p-5">
+        <div className="absolute right-15 top-80 z-10 flex w-full max-w-sm border-l-6 border-red-600 bg-red-600 bg-opacity-[15%] px-2 py-2 shadow-md dark:bg-[#1B1B24] dark:bg-opacity-30 md:p-5">
           <p className="text-red-600">Cédula no encontrada.</p>
         </div>
       )}
@@ -140,7 +153,6 @@ const UserSearch = () => {
                           <p><strong>Tipo de Sangre:</strong> {userData.bloodType}</p>
                           <p><strong>Contacto de Emergencia:</strong> {userData.emergencyContactName}</p>
                           <p><strong>Teléfono de Emergencia:</strong> {userData.emergencyContactPhone}</p>
-                          <p><strong>Plan de Gimnasio:</strong> {userData.gymPlan}</p>
                           {endDate && <p><strong>Fecha de Fin del Plan:</strong> {endDate}</p>}
                           {daysRemaining !== null && (
                             <p><strong>Días Restantes del Plan:</strong> {daysRemaining} días</p>

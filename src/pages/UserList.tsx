@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FaEdit, FaSearch, FaTrash } from 'react-icons/fa';
-import { AiOutlineClose } from 'react-icons/ai'; // Importamos el icono para la "X"
+import { AiOutlineClose } from 'react-icons/ai';
 import Breadcrumb from '../components/Breadcrumbs/Breadcrumb';
 
 interface User {
@@ -11,7 +11,7 @@ interface User {
   bloodType: string;
   emergencyContactName: string;
   emergencyContactPhone: string;
-  gymPlan: string; // Campo para el plan de gimnasio
+  gymPlan: string;
   completionDate?: string;
 }
 
@@ -34,71 +34,76 @@ const UserList: React.FC = () => {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [gymPlans, setGymPlans] = useState<GymPlan[]>([]);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
-  const [selectedEndDate, setSelectedEndDate] = useState<string | null>(null); // Para el calendario
-  const [deletingUser, setDeletingUser] = useState<User | null>(null); // Nuevo estado para el usuario que se va a eliminar
+  const [selectedEndDate, setSelectedEndDate] = useState<string | null>(null);
+  const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [fechaFinalizacion, setFechaFinalizacion] = useState('');
 
-
   useEffect(() => {
-    const storedUsers = localStorage.getItem('users');
-    if (storedUsers) {
-      setUsers(JSON.parse(storedUsers));
-    }
+    const fetchData = async () => {
+      try {
+        const usersResponse = await fetch('http://localhost:5000/api/users');
+        const usersData = await usersResponse.json();
+        const formattedUsers = usersData.map((user: any) => ({
+          idNumber: user.id_number,
+          fullName: user.full_name,
+          phoneNumber: user.phone_number,
+          eps: user.eps,
+          bloodType: user.blood_type,
+          emergencyContactName: user.emergency_contact_name,
+          emergencyContactPhone: user.emergency_contact_phone,
+          gymPlan: user.gym_plan,
+          completionDate: user.completion_date,
+        }));
+        setUsers(formattedUsers);
 
-    const storedPlans = localStorage.getItem('gymPlans');
-    if (storedPlans) {
-      setGymPlans(JSON.parse(storedPlans));
-    }
+        const plansResponse = await fetch('http://localhost:5000/api/plans');
+        const plansData = await plansResponse.json();
+        setGymPlans(plansData);
 
-    const storedSubscriptions = localStorage.getItem('subscriptions');
-    if (storedSubscriptions) {
-      const parsedSubscriptions = JSON.parse(storedSubscriptions);
-      const updatedSubscriptions = parsedSubscriptions.map(
-        (subscription: Subscription) => {
-          const updatedDaysRemaining = calculateDaysRemaining(
-            subscription.endDate,
-          );
-          return {
-            ...subscription,
-            daysRemaining: updatedDaysRemaining,
-          };
-        },
-      );
-      setSubscriptions(updatedSubscriptions);
-      localStorage.setItem(
-        'subscriptions',
-        JSON.stringify(updatedSubscriptions),
-      );
-    }
+        const subscriptionsResponse = await fetch('http://localhost:5000/api/subscriptions');
+        const subscriptionsData = await subscriptionsResponse.json();
+        const updatedSubscriptions = subscriptionsData.map((subscription: Subscription) => {
+          const updatedDaysRemaining = calculateDaysRemaining(subscription.endDate);
+          return { ...subscription, daysRemaining: updatedDaysRemaining };
+        });
+        setSubscriptions(updatedSubscriptions);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const filteredUsers = users.filter((user) => {
     const lowerCaseSearchTerm = searchTerm.toLowerCase();
     return (
-      user.fullName.toLowerCase().includes(lowerCaseSearchTerm) ||
-      user.phoneNumber.includes(lowerCaseSearchTerm) ||
-      user.idNumber.includes(lowerCaseSearchTerm)
+      (user.fullName && user.fullName.toLowerCase().includes(lowerCaseSearchTerm)) ||
+      (user.phoneNumber && user.phoneNumber.includes(lowerCaseSearchTerm)) ||
+      (user.idNumber && user.idNumber.includes(lowerCaseSearchTerm))
     );
   });
 
-  const handleDeleteUser = (idNumber: string) => {
-    const updatedUsers = users.filter((user) => user.idNumber !== idNumber);
-    setUsers(updatedUsers);
-    localStorage.setItem('users', JSON.stringify(updatedUsers));
-    setDeletingUser(null); // Cerrar el modal después de confirmar la eliminación
+  const handleDeleteUser = async (idNumber: string) => {
+    try {
+      await fetch(`http://localhost:5000/api/users/${idNumber}`, { method: 'DELETE' });
+      const updatedUsers = users.filter((user) => user.idNumber !== idNumber);
+      setUsers(updatedUsers);
+      setDeletingUser(null);
+    } catch (error) {
+      console.error('Error deleting user:', error);
+    }
   };
 
   const handleEditUser = (user: User) => {
     setEditingUser(user);
-    const subscription = subscriptions.find(
-        (sub) => sub.idNumber === user.idNumber,
-    );
+    const subscription = subscriptions.find((sub) => sub.idNumber === user.idNumber);
     if (subscription) {
-        setSelectedEndDate(subscription.endDate); // Usa la fecha de finalización existente
+      setSelectedEndDate(subscription.endDate);
     } else {
-        const today = new Date();
-        const nextMonth = new Date(today.setMonth(today.getMonth() + 1));
-        setSelectedEndDate(nextMonth.toISOString().split('T')[0]);
+      const today = new Date();
+      const nextMonth = new Date(today.setMonth(today.getMonth() + 1));
+      setSelectedEndDate(nextMonth.toISOString().split('T')[0]);
     }
   };
 
@@ -110,80 +115,81 @@ const UserList: React.FC = () => {
     return totalRemainingDays > 0 ? totalRemainingDays : 0;
   };
 
-
-  const handleUpdateUser = () => {
+  const handleUpdateUser = async () => {
     if (!editingUser) return;
 
     const formattedUser = {
-        ...editingUser,
-        fullName: editingUser.fullName.toUpperCase(),
-        completionDate: selectedEndDate || new Date().toISOString(), // Actualiza la fecha de finalización aquí
+      ...editingUser,
+      fullName: editingUser.fullName.toUpperCase(),
+      completionDate: selectedEndDate || new Date().toISOString(),
     };
 
-    const updatedUsers = users.map((user) =>
+    try {
+      // Check if the user exists
+      const userResponse = await fetch(`http://localhost:5000/api/users/${formattedUser.idNumber}`);
+      if (userResponse.ok) {
+        // User exists, perform PUT request
+        await fetch(`http://localhost:5000/api/users/${formattedUser.idNumber}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formattedUser),
+        });
+      } else {
+        // User does not exist, perform POST request
+        await fetch('http://localhost:5000/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formattedUser),
+        });
+      }
+
+      const updatedUsers = users.map((user) =>
         user.idNumber === formattedUser.idNumber ? formattedUser : user,
-    );
-    setUsers(updatedUsers);
-    localStorage.setItem('users', JSON.stringify(updatedUsers));
+      );
+      setUsers(updatedUsers);
 
-    const selectedPlan = gymPlans.find(
-        (plan) => plan.name === formattedUser.gymPlan,
-    );
+      const selectedPlan = gymPlans.find((plan) => plan.name === formattedUser.gymPlan);
 
-    if (selectedPlan) {
-        const existingSubscription = subscriptions.find(
-            (sub) => sub.idNumber === formattedUser.idNumber,
-        );
+      if (selectedPlan) {
+        const existingSubscription = subscriptions.find((sub) => sub.idNumber === formattedUser.idNumber);
 
         let endDate: string;
 
         if (existingSubscription) {
-            // Usa el endDate seleccionado o el que ya estaba guardado en la suscripción
-            endDate = selectedEndDate || existingSubscription.endDate;
-            const updatedSubscription = {
-                ...existingSubscription,
-                endDate: endDate,
-                daysRemaining: calculateDaysRemaining(endDate),
-            };
+          // Delete the existing subscription
+          await fetch(`http://localhost:5000/api/subscriptions/${formattedUser.idNumber}`, {
+            method: 'DELETE',
+          });
 
-            // Actualiza las suscripciones
-            const updatedSubscriptions = subscriptions.map((sub) =>
-                sub.idNumber === updatedSubscription.idNumber
-                    ? updatedSubscription
-                    : sub,
-            );
-
-            setSubscriptions(updatedSubscriptions);
-            localStorage.setItem(
-                'subscriptions',
-                JSON.stringify(updatedSubscriptions),
-            );
+          endDate = selectedEndDate || existingSubscription.endDate;
         } else {
-            // Si no hay suscripción existente, crea una nueva
-            endDate = calculateEndDateAsOneMonth(new Date());
-
-            const newSubscription: Subscription = {
-                idNumber: formattedUser.idNumber,
-                days: selectedPlan.days,
-                endDate: endDate,
-                daysRemaining: calculateDaysRemaining(endDate),
-            };
-
-            const updatedSubscriptions = [...subscriptions, newSubscription];
-            setSubscriptions(updatedSubscriptions);
-            localStorage.setItem(
-                'subscriptions',
-                JSON.stringify(updatedSubscriptions),
-            );
+          endDate = calculateEndDateAsOneMonth(new Date());
         }
+
+        const newSubscription: Subscription = {
+          idNumber: formattedUser.idNumber,
+          days: selectedPlan.days,
+          endDate: endDate,
+          daysRemaining: selectedPlan.days,
+        };
+
+        await fetch('http://localhost:5000/api/subscriptions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newSubscription),
+        });
+
+        const updatedSubscriptions = subscriptions.filter((sub) => sub.idNumber !== formattedUser.idNumber);
+        updatedSubscriptions.push(newSubscription);
+        setSubscriptions(updatedSubscriptions);
+      }
+
+      setEditingUser(null);
+      setSelectedEndDate(null);
+    } catch (error) {
+      console.error('Error updating user:', error);
     }
-
-    // Reinicia el usuario en edición y el endDate seleccionado
-    setEditingUser(null);
-    setSelectedEndDate(null);
-};
-
-
+  };
 
   const calculateEndDateAsOneMonth = (startDate: Date): string => {
     const endDate = new Date(startDate);
@@ -200,7 +206,7 @@ const UserList: React.FC = () => {
   };
 
   const handleCloseDeleteModal = () => {
-    setDeletingUser(null); // Cerrar el modal de eliminación
+    setDeletingUser(null);
   };
 
   return (

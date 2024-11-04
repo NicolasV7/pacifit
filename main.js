@@ -17,9 +17,9 @@ const createWindow = () => {
 
   win.setMenu(null);
 
-  win.loadURL('http://localhost:5173');
+  win.loadURL('http://localhost:5174');
 
-  //win.webContents.openDevTools();
+  win.webContents.openDevTools();
 
   win.webContents.insertCSS(`
     ::-webkit-scrollbar {

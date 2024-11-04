@@ -49,15 +49,6 @@ function App() {
           }
         />
         <Route
-          path="/configuraciones"
-          element={
-            <>
-              <PageTitle title="Configuraciones | Pacifit - Admin Dashboard" />
-              <Settings />
-            </>
-          }
-        />
-        <Route
           path="/registrar-usuario"
           element={
             <>

@@ -228,28 +228,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               {/* <!-- Menu Item Profile --> */}
 
               {/* <!-- Menu Item Tables --> */}
-              <li>
-              <NavLink
-                to="/configuraciones"
-                className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
-                  pathname.includes('tables') && 'bg-graydark dark:bg-meta-4'
-                }`}
-              >
-                <svg
-                  className="fill-current"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M3 13V3h10l4 4v6h4v10H3V13zM11 5H5v2h6V5zm0 4H5v2h6V9zm0 4H5v2h6v-2z" fill="currentColor"/>
-                </svg>
-                Configuraciones
-              </NavLink>
-              </li>
-
-              {/* <!-- Menu Item Tables --> */}
 
               {/* <!-- Menu Item Settings --> */}
               <li>

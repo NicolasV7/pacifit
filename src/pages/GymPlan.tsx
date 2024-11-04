@@ -3,18 +3,19 @@ import TrashIcon from '../images/icon/TrashIcon.svg';
 import Breadcrumb from '../components/Breadcrumbs/Breadcrumb';
 
 const GymPlans = () => {
-  const [plans, setPlans] = useState<{ name: string; price: number; days: number }[]>([]);
+  const [plans, setPlans] = useState<{ id: number; name: string; price: number; days: number }[]>([]);
   const [planName, setPlanName] = useState('');
   const [planPrice, setPlanPrice] = useState('');
   const [planDays, setPlanDays] = useState('');
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
 
+  // Obtener planes de la API al cargar el componente
   useEffect(() => {
-    const storedPlans = localStorage.getItem('gymPlans');
-    if (storedPlans) {
-      setPlans(JSON.parse(storedPlans));
-    }
+    fetch('http://localhost:5000/api/plans')
+      .then(response => response.json())
+      .then(data => setPlans(data))
+      .catch(error => console.error("Error al cargar los planes:", error));
   }, []);
 
   const addPlan = () => {
@@ -26,9 +27,7 @@ const GymPlans = () => {
       parseInt(planDays, 10) <= 0
     ) {
       setShowErrorAlert(true);
-      setTimeout(() => {
-        setShowErrorAlert(false);
-      }, 2000);
+      setTimeout(() => setShowErrorAlert(false), 2000);
       return;
     }
 
@@ -38,38 +37,45 @@ const GymPlans = () => {
       days: parseInt(planDays, 10),
     };
 
-    const updatedPlans = [...plans, newPlan];
-    setPlans(updatedPlans);
-    setPlanName('');
-    setPlanPrice('');
-    setPlanDays('');
-    setShowSuccessAlert(true);
-    setTimeout(() => {
-      setShowSuccessAlert(false);
-    }, 2000);
-
-    localStorage.setItem('gymPlans', JSON.stringify(updatedPlans));
+    // Llamada a la API para agregar el plan
+    fetch('http://localhost:5000/api/plans', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newPlan),
+    })
+      .then(response => response.json())
+      .then(data => {
+        setPlans(prevPlans => [...prevPlans, data]); // Actualiza la lista con el nuevo plan
+        setPlanName('');
+        setPlanPrice('');
+        setPlanDays('');
+        setShowSuccessAlert(true);
+        setTimeout(() => setShowSuccessAlert(false), 2000);
+      })
+      .catch(error => console.error("Error al agregar el plan:", error));
   };
 
-  const deletePlan = (index: number) => {
-    const updatedPlans = plans.filter((_, i) => i !== index);
-    setPlans(updatedPlans);
-
-    localStorage.setItem('gymPlans', JSON.stringify(updatedPlans));
+  const deletePlan = (id: string) => {
+    // Llamada a la API para eliminar el plan
+    fetch(`http://localhost:5000/api/plans/${id}`, { method: 'DELETE' })
+      .then(() => {
+        setPlans(prevPlans => prevPlans.filter(plan => plan.name !== id));
+      })
+      .catch(error => console.error("Error al eliminar el plan:", error));
   };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-CO').format(price);
   };
 
-  // Función que maneja la tecla Enter para enviar el formulario
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       addPlan();
     }
   };
 
-  // Convertir el valor a mayúsculas al escribir en el campo de nombre
   const handlePlanNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const uppercasedName = e.target.value.toUpperCase();
     setPlanName(uppercasedName);
@@ -80,8 +86,6 @@ const GymPlans = () => {
       {showSuccessAlert && (
         <div className="absolute right-5 top-80 z-10 flex w-full max-w-md border-l-6 border-[#34D399] bg-[#34D399] bg-opacity-[15%] px-4 py-3 shadow-md dark:bg-[#1B1B24] dark:bg-opacity-30 md:p-9">
           <span className="text-green-600">¡Plan agregado con éxito!</span>
-          {/* Success Alert */}
-
         </div>
       )}
 
@@ -169,13 +173,13 @@ const GymPlans = () => {
                 <div className="mt-6">
                   <h4 className="text-lg font-semibold">Planes Agregados</h4>
                   <ul>
-                    {plans.map((plan, index) => (
-                      <li key={index} className="flex justify-between border-b py-2">
+                    {plans.map((plan) => (
+                      <li key={plan.id} className="flex justify-between border-b py-2">
                         <div>
                           <span>{plan.name}</span> - <span>${formatPrice(plan.price)}</span> - <span>{plan.days} días</span>
                         </div>
                         <button
-                          onClick={() => deletePlan(index)}
+                          onClick={() => deletePlan(plan.name)}
                           className="ml-4 text-red-600 hover:underline"
                         >
                           <img src={TrashIcon} alt="Eliminar" className="w-6 h-6" />
