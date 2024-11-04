@@ -1,11 +1,7 @@
 import React, { useEffect } from 'react';
 import CardDataStats from '../../components/CardDataStats';
 import ChartOne from '../../components/Charts/ChartOne';
-import ChartThree from '../../components/Charts/ChartThree';
 import ChartTwo from '../../components/Charts/ChartTwo';
-import ChatCard from '../../components/Chat/ChatCard';
-import MapOne from '../../components/Maps/MapOne';
-import TableOne from '../../components/Tables/TableOne';
 
 const ECommerce: React.FC = () => {
   const [totalUsers, setTotalUsers] = React.useState(0);
@@ -14,33 +10,42 @@ const ECommerce: React.FC = () => {
   const [previousTotalSubscribers, setPreviousTotalSubscribers] = React.useState(0);
 
   useEffect(() => {
-    const previousUsers = JSON.parse(localStorage.getItem('previousUsers') || '[]');
-    const previousSubscribers = JSON.parse(localStorage.getItem('previousSubscriptions') || '[]');
+    const fetchPreviousData = async () => {
+      try {
+        const usersResponse = await fetch('http://localhost:5000/api/users?date=previous');
+        const usersData = await usersResponse.json();
+        const subscribersResponse = await fetch('http://localhost:5000/api/subscriptions?date=previous');
+        const subscribersData = await subscribersResponse.json();
 
-    // Solo si existen datos previos se actualizan
-    if (previousUsers.length > 0) setPreviousTotalUsers(previousUsers.length);
-    if (previousSubscribers.length > 0) setPreviousTotalSubscribers(previousSubscribers.length);
+        setPreviousTotalUsers(usersData.length);
+        setPreviousTotalSubscribers(subscribersData.filter((sub: { status: string }) => sub.status === 'Activo').length);
+      } catch (error) {
+        console.error('Error fetching previous data:', error);
+      }
+    };
 
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const subscribers = JSON.parse(localStorage.getItem('subscriptions') || '[]');
-
-    setTotalUsers(users.length);
-    setTotalSubscribers(subscribers.length);
+    fetchPreviousData();
   }, []);
 
   useEffect(() => {
-    // Guardamos el estado previo antes de que cambien los totales
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const subscribers = JSON.parse(localStorage.getItem('subscriptions') || '[]');
+    const fetchData = async () => {
+      try {
+        const usersResponse = await fetch('http://localhost:5000/api/users');
+        const usersData = await usersResponse.json();
+        const subscribersResponse = await fetch('http://localhost:5000/api/subscriptions');
+        const subscribersData = await subscribersResponse.json();
 
-    // Guardamos el valor actual en "previous" para la siguiente actualización
-    localStorage.setItem('previousUsers', JSON.stringify(users));
-    localStorage.setItem('previousSubscriptions', JSON.stringify(subscribers));
+        setTotalUsers(usersData.length);
+        setTotalSubscribers(subscribersData.filter((sub: { status: string }) => sub.status === 'Activo').length);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
   }, [totalUsers, totalSubscribers]);
 
-  // Resta opcional a los valores previos antes del cálculo
   const calculatePercentage = (current: number, previous: number) => {
-    // Restar 1 al valor previo si lo deseas
     const adjustedPrevious = previous > 0 ? previous - 1 : previous;
 
     if (adjustedPrevious === 0 && current === 0) return '0%';
@@ -51,20 +56,6 @@ const ECommerce: React.FC = () => {
 
   const usersPercentage = calculatePercentage(totalUsers, previousTotalUsers);
   const subscribersPercentage = calculatePercentage(totalSubscribers, previousTotalSubscribers);
-
-  const clearUsers = () => {
-    localStorage.removeItem('users');
-    localStorage.removeItem('previousUsers');
-    setTotalUsers(0);
-    setPreviousTotalUsers(0);
-  };
-
-  const clearSubscribers = () => {
-    localStorage.removeItem('subscriptions');
-    localStorage.removeItem('previousSubscriptions');
-    setTotalSubscribers(0);
-    setPreviousTotalSubscribers(0);
-  };
 
 
   return (
@@ -161,12 +152,6 @@ const ECommerce: React.FC = () => {
       <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:mt-7.5 2xl:gap-7.5">
         <ChartOne />
         <ChartTwo />
-        <ChartThree />
-        <MapOne />
-        <div className="col-span-12 xl:col-span-8">
-          <TableOne />
-        </div>
-        <ChatCard />
       </div>
     </>
   );

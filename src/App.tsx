@@ -5,7 +5,6 @@ import UserList from './pages/UserList';
 import Loader from './common/Loader';
 import PageTitle from './components/PageTitle';
 import ECommerce from './pages/Dashboard/ECommerce';
-import Settings from './pages/Settings';
 import DefaultLayout from './layout/DefaultLayout';
 import AddUser from './pages/AddUser';
 import GymPlans from './pages/GymPlan';

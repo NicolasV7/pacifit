@@ -1,148 +1,75 @@
-import { ApexOptions } from 'apexcharts';
 import React, { useState } from 'react';
-import ReactApexChart from 'react-apexcharts';
-
-const options: ApexOptions = {
-  legend: {
-    show: false,
-    position: 'top',
-    horizontalAlign: 'left',
-  },
-  colors: ['#3C50E0', '#80CAEE'],
-  chart: {
-    fontFamily: 'Satoshi, sans-serif',
-    height: 335,
-    type: 'area',
-    dropShadow: {
-      enabled: true,
-      color: '#623CEA14',
-      top: 10,
-      blur: 4,
-      left: 0,
-      opacity: 0.1,
-    },
-
-    toolbar: {
-      show: false,
-    },
-  },
-  responsive: [
-    {
-      breakpoint: 1024,
-      options: {
-        chart: {
-          height: 300,
-        },
-      },
-    },
-    {
-      breakpoint: 1366,
-      options: {
-        chart: {
-          height: 350,
-        },
-      },
-    },
-  ],
-  stroke: {
-    width: [2, 2],
-    curve: 'straight',
-  },
-  // labels: {
-  //   show: false,
-  //   position: "top",
-  // },
-  grid: {
-    xaxis: {
-      lines: {
-        show: true,
-      },
-    },
-    yaxis: {
-      lines: {
-        show: true,
-      },
-    },
-  },
-  dataLabels: {
-    enabled: false,
-  },
-  markers: {
-    size: 4,
-    colors: '#fff',
-    strokeColors: ['#3056D3', '#80CAEE'],
-    strokeWidth: 3,
-    strokeOpacity: 0.9,
-    strokeDashArray: 0,
-    fillOpacity: 1,
-    discrete: [],
-    hover: {
-      size: undefined,
-      sizeOffset: 5,
-    },
-  },
-  xaxis: {
-    type: 'category',
-    categories: [
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-    ],
-    axisBorder: {
-      show: false,
-    },
-    axisTicks: {
-      show: false,
-    },
-  },
-  yaxis: {
-    title: {
-      style: {
-        fontSize: '0px',
-      },
-    },
-    min: 0,
-    max: 100,
-  },
-};
-
-interface ChartOneState {
-  series: {
-    name: string;
-    data: number[];
-  }[];
-}
+import { AiOutlineClose } from 'react-icons/ai';
 
 const ChartOne: React.FC = () => {
-  const [state, setState] = useState<ChartOneState>({
-    series: [
-      {
-        name: 'Product One',
-        data: [23, 11, 22, 27, 13, 22, 37, 21, 44, 22, 30, 45],
-      },
+  const [customValue, setCustomValue] = useState<string>('0');
+  const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
+  const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
+  const [showErrorModal, setShowErrorModal] = useState<boolean>(false);
+  const [entryAmount, setEntryAmount] = useState<number>(0);
+  const [entryType, setEntryType] = useState<string>(''); // New state for entry type
+  const [buttonValues, setButtonValues] = useState<number[]>([10000, 50000, 100000]);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editingValue, setEditingValue] = useState<string>('');
 
-      {
-        name: 'Product Two',
-        data: [30, 25, 36, 30, 45, 35, 64, 52, 59, 36, 39, 51],
-      },
-    ],
-  });
-
-  const handleReset = () => {
-    setState((prevState) => ({
-      ...prevState,
-    }));
+  const handleRegisterEntry = async (amount: number, type: string) => {
+    try {
+      const response = await fetch('http://localhost:5000/api/suma', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ tipo: type, monto: amount }),
+      });
+      if (!response.ok) {
+        throw new Error('Error al registrar la entrada');
+      }
+      setShowSuccessModal(true);
+      setCustomValue(''); // Clear the input field after successful registration
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error al registrar la entrada');
+    }
   };
-  handleReset;
+
+  const formatNumber = (value: string) => {
+    return value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  };
+
+  const handleCustomValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedValue = formatNumber(event.target.value);
+    setCustomValue(formattedValue);
+  };
+
+  const handleCustomValueSubmit = () => {
+    const numericValue = Number(customValue.replace(/\./g, ''));
+    if (numericValue > 0) {
+      setEntryAmount(numericValue);
+      setShowConfirmModal(true);
+    } else {
+      setShowErrorModal(true);
+    }
+  };
+
+  const handleConfirmEntry = (type: string) => {
+    handleRegisterEntry(entryAmount, type);
+    setShowConfirmModal(false);
+  };
+
+  const handleEditButtonValue = (index: number) => {
+    setEditingIndex(index);
+    setEditingValue(buttonValues[index].toString());
+  };
+
+  const handleSaveButtonValue = () => {
+    if (editingIndex !== null) {
+      const newValues = [...buttonValues];
+      newValues[editingIndex] = Number(editingValue.replace(/\./g, ''));
+      setButtonValues(newValues);
+      setEditingIndex(null);
+      setEditingValue('');
+    }
+  };
 
   return (
     <div className="col-span-12 rounded-sm border border-stroke bg-white px-5 pt-7.5 pb-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:col-span-8">
@@ -153,45 +80,141 @@ const ChartOne: React.FC = () => {
               <span className="block h-2.5 w-full max-w-2.5 rounded-full bg-primary"></span>
             </span>
             <div className="w-full">
-              <p className="font-semibold text-primary">Total Revenue</p>
-              <p className="text-sm font-medium">12.04.2022 - 12.05.2022</p>
+              <p className="font-semibold text-primary">Registrar Entradas/Gastos</p>
             </div>
-          </div>
-          <div className="flex min-w-47.5">
-            <span className="mt-1 mr-2 flex h-4 w-full max-w-4 items-center justify-center rounded-full border border-secondary">
-              <span className="block h-2.5 w-full max-w-2.5 rounded-full bg-secondary"></span>
-            </span>
-            <div className="w-full">
-              <p className="font-semibold text-secondary">Total Sales</p>
-              <p className="text-sm font-medium">12.04.2022 - 12.05.2022</p>
-            </div>
-          </div>
-        </div>
-        <div className="flex w-full max-w-45 justify-end">
-          <div className="inline-flex items-center rounded-md bg-whiter p-1.5 dark:bg-meta-4">
-            <button className="rounded bg-white py-1 px-3 text-xs font-medium text-black shadow-card hover:bg-white hover:shadow-card dark:bg-boxdark dark:text-white dark:hover:bg-boxdark">
-              Day
-            </button>
-            <button className="rounded py-1 px-3 text-xs font-medium text-black hover:bg-white hover:shadow-card dark:text-white dark:hover:bg-boxdark">
-              Week
-            </button>
-            <button className="rounded py-1 px-3 text-xs font-medium text-black hover:bg-white hover:shadow-card dark:text-white dark:hover:bg-boxdark">
-              Month
-            </button>
           </div>
         </div>
       </div>
 
-      <div>
-        <div id="chartOne" className="-ml-5">
-          <ReactApexChart
-            options={options}
-            series={state.series}
-            type="area"
-            height={350}
+      <div className="mt-5 flex flex-col items-center">
+        {buttonValues.map((value, index) => (
+          <div key={index} className="flex items-center mb-3">
+            {editingIndex === index ? (
+              <>
+                <input
+                  type="text"
+                  value={editingValue}
+                  onChange={(e) => setEditingValue(formatNumber(e.target.value))}
+                  className="mr-3 rounded border border-gray-300 p-2"
+                />
+                <button
+                  className="mr-3 rounded bg-green-500 py-2 px-4 text-white"
+                  onClick={handleSaveButtonValue}
+                >
+                  Guardar
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  className="mr-3 rounded bg-blue-500 py-2 px-4 text-white"
+                  onClick={() => {
+                    setEntryAmount(value);
+                    setShowConfirmModal(true);
+                  }}
+                >
+                  {value.toLocaleString()}
+                </button>
+                <button
+                  className="rounded bg-yellow-500 py-2 px-4 text-white"
+                  onClick={() => handleEditButtonValue(index)}
+                >
+                  Editar
+                </button>
+              </>
+            )}
+          </div>
+        ))}
+        <div className="mt-5 flex items-center">
+          <input
+            type="text"
+            value={customValue}
+            onChange={handleCustomValueChange}
+            className="mr-3 rounded border border-gray-300 p-2"
           />
+          <button
+            className="rounded bg-green-500 py-2 px-4 text-white"
+            onClick={handleCustomValueSubmit}
+          >
+            Registrar otro valor
+          </button>
         </div>
       </div>
+
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-4 rounded shadow-md w-1/3 relative">
+            <button
+              className="absolute top-2 right-2 text-gray-600 hover:text-gray-800"
+              onClick={() => setShowConfirmModal(false)}
+            >
+              <AiOutlineClose size={20} />
+            </button>
+            <h2 className="text-xl font-semibold mb-4">Confirmar Entrada</h2>
+            <p>¿Estás seguro de que deseas registrar {entryAmount.toLocaleString()}?</p>
+            <div className="mt-4 flex justify-between">
+              <button
+                className="bg-green-600 text-white px-4 py-2 rounded"
+                onClick={() => handleConfirmEntry('Entrada')}
+              >
+                Entrada
+              </button>
+              <button
+                className="bg-red-600 text-white px-4 py-2 rounded"
+                onClick={() => handleConfirmEntry('Gasto')}
+              >
+                Gasto
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-4 rounded shadow-md w-1/3 relative">
+            <button
+              className="absolute top-2 right-2 text-gray-600 hover:text-gray-800"
+              onClick={() => setShowSuccessModal(false)}
+            >
+              <AiOutlineClose size={20} />
+            </button>
+            <h2 className="text-xl font-semibold mb-4">Entrada Registrada</h2>
+            <p>La entrada por {entryAmount.toLocaleString()} ha sido registrada con éxito.</p>
+            <div className="mt-4 flex justify-end">
+              <button
+                className="bg-blue-600 text-white px-4 py-2 rounded"
+                onClick={() => setShowSuccessModal(false)}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showErrorModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-4 rounded shadow-md w-1/3 relative">
+            <button
+              className="absolute top-2 right-2 text-gray-600 hover:text-gray-800"
+              onClick={() => setShowErrorModal(false)}
+            >
+              <AiOutlineClose size={20} />
+            </button>
+            <h2 className="text-xl font-semibold mb-4">Error</h2>
+            <p>El valor debe ser mayor que 0.</p>
+            <div className="mt-4 flex justify-end">
+              <button
+                className="bg-red-600 text-white px-4 py-2 rounded"
+                onClick={() => setShowErrorModal(false)}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

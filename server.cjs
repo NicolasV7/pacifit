@@ -170,7 +170,6 @@ app.post('/api/subscriptions', async (req, res) => {
   const { idNumber, endDate, daysRemaining } = req.body;
 
   try {
-    console.log('Creating subscription:', { idNumber, endDate, daysRemaining });
     const query = `
       INSERT INTO subscriptions (id_number, end_date, days_remaining, status)
       VALUES ($1, $2, $3, 'Activo') RETURNING *
@@ -188,7 +187,6 @@ app.put('/api/subscriptions/:idNumber', async (req, res) => {
   const { endDate, daysRemaining } = req.body;
 
   try {
-    console.log('Updating subscription:', { idNumber, endDate, daysRemaining });
 
     // Delete existing subscription if it exists
     await pool.query('DELETE FROM subscriptions WHERE id_number = $1', [idNumber]);
@@ -202,6 +200,34 @@ app.put('/api/subscriptions/:idNumber', async (req, res) => {
   } catch (error) {
     console.error('Error al actualizar la suscripción:', error);
     res.status(500).json({ message: 'Error al actualizar la suscripción' });
+  }
+});
+
+// Endpoint para registrar una nueva entrada
+app.post('/api/suma', async (req, res) => {
+  const { tipo, monto } = req.body;
+
+  try {
+    const query = `
+      INSERT INTO entradas (tipo, monto)
+      VALUES ($1, $2) RETURNING *
+    `;
+    const result = await pool.query(query, [tipo, monto]);
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Error al registrar la entrada:', error);
+    res.status(500).json({ message: 'Error al registrar la entrada' });
+  }
+});
+
+// Endpoint para obtener todas las entradas
+app.get('/api/suma', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM entradas');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error al obtener las entradas:', error);
+    res.status(500).json({ message: 'Error al obtener las entradas' });
   }
 });
 

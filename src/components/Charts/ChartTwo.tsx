@@ -1,6 +1,8 @@
 import { ApexOptions } from 'apexcharts';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactApexChart from 'react-apexcharts';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const options: ApexOptions = {
   colors: ['#3C50E0', '#80CAEE'],
@@ -16,7 +18,6 @@ const options: ApexOptions = {
       enabled: false,
     },
   },
-
   responsive: [
     {
       breakpoint: 1536,
@@ -42,9 +43,13 @@ const options: ApexOptions = {
   dataLabels: {
     enabled: false,
   },
-
   xaxis: {
-    categories: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
+    categories: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
+  },
+  yaxis: {
+    labels: {
+      formatter: (val) => val.toLocaleString('de-DE'),
+    },
   },
   legend: {
     position: 'top',
@@ -52,13 +57,17 @@ const options: ApexOptions = {
     fontFamily: 'Satoshi',
     fontWeight: 500,
     fontSize: '14px',
-
     markers: {
       radius: 99,
     },
   },
   fill: {
     opacity: 1,
+  },
+  tooltip: {
+    y: {
+      formatter: (val) => val.toLocaleString('de-DE'),
+    },
   },
 };
 
@@ -67,72 +76,146 @@ interface ChartTwoState {
     name: string;
     data: number[];
   }[];
+  totalEntradas: number;
+  totalGastos: number;
+  data: { tipo: string; monto: number; fecha: string }[];
 }
 
 const ChartTwo: React.FC = () => {
   const [state, setState] = useState<ChartTwoState>({
     series: [
       {
-        name: 'Sales',
-        data: [44, 55, 41, 67, 22, 43, 65],
+        name: 'Entradas',
+        data: [],
       },
       {
-        name: 'Revenue',
-        data: [13, 23, 20, 8, 13, 27, 15],
+        name: 'Gastos',
+        data: [],
       },
     ],
+    totalEntradas: 0,
+    totalGastos: 0,
+    data: [],
   });
-  
-  const handleReset = () => {
-    setState((prevState) => ({
-      ...prevState,
-    }));
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      // Fecha final: hoy al final del día
+      const endDate = new Date();
+      endDate.setHours(23, 59, 59, 999); // Final del día de hoy
+
+      // Fecha de inicio: hace 30 días al principio del día
+      const startDate = new Date();
+      startDate.setDate(endDate.getDate() - 30);
+      startDate.setHours(0, 0, 0, 0); // Principio del día hace 30 días
+
+      const response = await fetch(
+        `http://localhost:5000/api/suma?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
+      );
+      const data = await response.json();
+
+      let totalEntradas = 0;
+      let totalGastos = 0;
+
+      // Filtrar datos para que solo incluyan los últimos 30 días
+      const filteredData = data.filter((item: { tipo: string; monto: number; fecha: string }) => {
+        const itemDate = new Date(item.fecha);
+        return itemDate >= startDate && itemDate <= endDate;
+      });
+
+      const groupedData = {
+        entradas: Array(7).fill(0),
+        gastos: Array(7).fill(0),
+      };
+
+      filteredData.forEach((item: { tipo: string; monto: number; fecha: string }) => {
+        const date = new Date(item.fecha);
+        const dayOfWeek = (date.getDay() + 6) % 7; // Ajusta el día de la semana
+        const monto = Number(item.monto);
+
+        if (item.tipo === 'Entrada') {
+          groupedData.entradas[dayOfWeek] += monto;
+          totalEntradas += monto;
+        } else if (item.tipo === 'Gasto') {
+          groupedData.gastos[dayOfWeek] += monto;
+          totalGastos += monto;
+        }
+      });
+
+      setState({
+        series: [
+          {
+            name: `Entradas (${totalEntradas.toLocaleString('de-DE')})`,
+            data: groupedData.entradas,
+          },
+          {
+            name: `Gastos (${totalGastos.toLocaleString('de-DE')})`,
+            data: groupedData.gastos,
+          },
+        ],
+        totalEntradas,
+        totalGastos,
+        data: filteredData, // Solo los datos filtrados
+      });
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
   };
-  handleReset;  
+
+
+
+  const generatePDF = async () => {
+    const input = document.getElementById('chartTwo');
+    if (input) {
+      const canvas = await html2canvas(input);
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF();
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width / 4, canvas.height / 4);
+
+      pdf.setFontSize(16);
+      pdf.text('Reporte de Entradas y Gastos', 10, canvas.height / 4 + 20);
+
+      pdf.setFontSize(12);
+      pdf.text('Movimientos:', 10, canvas.height / 4 + 30);
+
+      let yPosition = canvas.height / 4 + 40;
+      state.data.forEach((item) => {
+        const fecha = new Date(item.fecha).toLocaleDateString('es-ES');
+        pdf.text(`${fecha}: ${item.tipo} - $${item.monto.toLocaleString('de-DE')}`, 10, yPosition);
+        yPosition += 10;
+      });
+
+      yPosition += 10;
+      pdf.setFontSize(14);
+      pdf.text(`Total Entradas: $${state.totalEntradas.toLocaleString('de-DE')}`, 10, yPosition);
+      yPosition += 10;
+      pdf.text(`Total Gastos: $${state.totalGastos.toLocaleString('de-DE')}`, 10, yPosition);
+
+      // Obtener la fecha actual y formatearla como "año-mes-día"
+      const fechaHoy = new Date().toISOString().split('T')[0];
+      pdf.save(`Reporte-${fechaHoy}.pdf`);
+    }
+  };
+
+
 
   return (
     <div className="col-span-12 rounded-sm border border-stroke bg-white p-7.5 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-4">
       <div className="mb-4 justify-between gap-4 sm:flex">
         <div>
           <h4 className="text-xl font-semibold text-black dark:text-white">
-            Profit this week
+            Movimientos
           </h4>
         </div>
-        <div>
-          <div className="relative z-20 inline-block">
-            <select
-              name="#"
-              id="#"
-              className="relative z-20 inline-flex appearance-none bg-transparent py-1 pl-3 pr-8 text-sm font-medium outline-none"
-            >
-              <option value="" className='dark:bg-boxdark'>This Week</option>
-              <option value="" className='dark:bg-boxdark'>Last Week</option>
-            </select>
-            <span className="absolute top-1/2 right-3 z-10 -translate-y-1/2">
-              <svg
-                width="10"
-                height="6"
-                viewBox="0 0 10 6"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M0.47072 1.08816C0.47072 1.02932 0.500141 0.955772 0.54427 0.911642C0.647241 0.808672 0.809051 0.808672 0.912022 0.896932L4.85431 4.60386C4.92785 4.67741 5.06025 4.67741 5.14851 4.60386L9.09079 0.896932C9.19376 0.793962 9.35557 0.808672 9.45854 0.911642C9.56151 1.01461 9.5468 1.17642 9.44383 1.27939L5.50155 4.98632C5.22206 5.23639 4.78076 5.23639 4.51598 4.98632L0.558981 1.27939C0.50014 1.22055 0.47072 1.16171 0.47072 1.08816Z"
-                  fill="#637381"
-                />
-                <path
-                  fillRule="evenodd"
-                  clipRule="evenodd"
-                  d="M1.22659 0.546578L5.00141 4.09604L8.76422 0.557869C9.08459 0.244537 9.54201 0.329403 9.79139 0.578788C10.112 0.899434 10.0277 1.36122 9.77668 1.61224L9.76644 1.62248L5.81552 5.33722C5.36257 5.74249 4.6445 5.7544 4.19352 5.32924C4.19327 5.32901 4.19377 5.32948 4.19352 5.32924L0.225953 1.61241C0.102762 1.48922 -4.20186e-08 1.31674 -3.20269e-08 1.08816C-2.40601e-08 0.905899 0.0780105 0.712197 0.211421 0.578787C0.494701 0.295506 0.935574 0.297138 1.21836 0.539529L1.22659 0.546578ZM4.51598 4.98632C4.78076 5.23639 5.22206 5.23639 5.50155 4.98632L9.44383 1.27939C9.5468 1.17642 9.56151 1.01461 9.45854 0.911642C9.35557 0.808672 9.19376 0.793962 9.09079 0.896932L5.14851 4.60386C5.06025 4.67741 4.92785 4.67741 4.85431 4.60386L0.912022 0.896932C0.809051 0.808672 0.647241 0.808672 0.54427 0.911642C0.500141 0.955772 0.47072 1.02932 0.47072 1.08816C0.47072 1.16171 0.50014 1.22055 0.558981 1.27939L4.51598 4.98632Z"
-                  fill="#637381"
-                />
-              </svg>
-            </span>
-          </div>
-        </div>
       </div>
-
       <div>
+        <button onClick={generatePDF} className="mb-4 px-4 py-2 bg-blue-500 text-white rounded">
+          Generar Reporte
+        </button>
         <div id="chartTwo" className="-ml-5 -mb-9">
           <ReactApexChart
             options={options}
