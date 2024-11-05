@@ -22,12 +22,12 @@ const UserSearch = () => {
 
   const handleSearch = async () => {
     try {
-      const userResponse = await fetch(`http://localhost:5055/api/users/${idNumber}`);
+      const userResponse = await fetch(`http://localhost:5000/api/users/${idNumber}`);
       if (userResponse.ok) {
         const foundUser = await userResponse.json();
         console.log('Usuario encontrado:', foundUser);
 
-        const subscriptionResponse = await fetch(`http://localhost:5055/api/subscriptions/${idNumber}`);
+        const subscriptionResponse = await fetch(`http://localhost:5000/api/subscriptions/${idNumber}`);
         if (subscriptionResponse.ok) {
           const userSubscription = await subscriptionResponse.json();
           setDaysRemaining(userSubscription.days_remaining);

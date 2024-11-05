@@ -14,7 +14,7 @@ const ChartOne: React.FC = () => {
 
   const handleRegisterEntry = async (amount: number, type: string) => {
     try {
-      const response = await fetch('http://localhost:5055/api/suma', {
+      const response = await fetch('http://localhost:5000/api/suma', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

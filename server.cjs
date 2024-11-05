@@ -257,7 +257,7 @@ app.get('/api/suma', async (req, res) => {
   }
 });
 
-const PORT = 5055;
+const PORT = 5000;
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en el puerto ${PORT}`);
 });

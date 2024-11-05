@@ -40,7 +40,7 @@ const UserList: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const usersResponse = await fetch('http://localhost:5055/api/users');
+        const usersResponse = await fetch('http://localhost:5000/api/users');
         const usersData = await usersResponse.json();
         const formattedUsers = usersData.map((user: any) => ({
           idNumber: user.id_number,
@@ -55,11 +55,11 @@ const UserList: React.FC = () => {
         }));
         setUsers(formattedUsers);
 
-        const plansResponse = await fetch('http://localhost:5055/api/plans');
+        const plansResponse = await fetch('http://localhost:5000/api/plans');
         const plansData = await plansResponse.json();
         setGymPlans(plansData);
 
-        const subscriptionsResponse = await fetch('http://localhost:5055/api/subscriptions');
+        const subscriptionsResponse = await fetch('http://localhost:5000/api/subscriptions');
         const subscriptionsData = await subscriptionsResponse.json();
         const updatedSubscriptions = subscriptionsData.map((subscription: Subscription) => {
           const updatedDaysRemaining = calculateDaysRemaining(subscription.endDate);
@@ -85,7 +85,7 @@ const UserList: React.FC = () => {
 
   const handleDeleteUser = async (idNumber: string) => {
     try {
-      await fetch(`http://localhost:5055/api/users/${idNumber}`, { method: 'DELETE' });
+      await fetch(`http://localhost:5000/api/users/${idNumber}`, { method: 'DELETE' });
       const updatedUsers = users.filter((user) => user.idNumber !== idNumber);
       setUsers(updatedUsers);
       setDeletingUser(null);
@@ -125,17 +125,17 @@ const UserList: React.FC = () => {
 
     try {
       // Check if the user exists
-      const userResponse = await fetch(`http://localhost:5055/api/users/${formattedUser.idNumber}`);
+      const userResponse = await fetch(`http://localhost:5000/api/users/${formattedUser.idNumber}`);
       if (userResponse.ok) {
         // User exists, perform PUT request
-        await fetch(`http://localhost:5055/api/users/${formattedUser.idNumber}`, {
+        await fetch(`http://localhost:5000/api/users/${formattedUser.idNumber}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formattedUser),
         });
       } else {
         // User does not exist, perform POST request
-        await fetch('http://localhost:5055/api/users', {
+        await fetch('http://localhost:5000/api/users', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formattedUser),
@@ -167,7 +167,7 @@ const UserList: React.FC = () => {
           daysRemaining: selectedPlan.days,
         };
 
-        await fetch('http://localhost:5055/api/subscriptions', {
+        await fetch('http://localhost:5000/api/subscriptions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newSubscription),
@@ -186,7 +186,7 @@ const UserList: React.FC = () => {
             endDate: selectedEndDate || existingSubscription.endDate,
           };
 
-          await fetch(`http://localhost:5055/api/subscriptions/${formattedUser.idNumber}`, {
+          await fetch(`http://localhost:5000/api/subscriptions/${formattedUser.idNumber}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updatedSubscription),
@@ -205,7 +205,7 @@ const UserList: React.FC = () => {
             daysRemaining: 0, // Default value if no plan is selected
           };
 
-          await fetch('http://localhost:5055/api/subscriptions', {
+          await fetch('http://localhost:5000/api/subscriptions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(newSubscription),

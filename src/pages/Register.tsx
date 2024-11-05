@@ -20,7 +20,7 @@ const UserSubscription = () => {
     }
 
     try {
-      const subscriptionResponse = await fetch(`http://localhost:5055/api/subscriptions/${idNumber}`);
+      const subscriptionResponse = await fetch(`http://localhost:5000/api/subscriptions/${idNumber}`);
       if (subscriptionResponse.ok) {
         const foundSubscription = await subscriptionResponse.json();
         console.log('Suscripción encontrada:', foundSubscription);
@@ -37,7 +37,7 @@ const UserSubscription = () => {
           setDays(updatedDaysRemaining);
 
           // Update the subscription on the server
-          await fetch(`http://localhost:5055/api/subscriptions/${idNumber}`, {
+          await fetch(`http://localhost:5000/api/subscriptions/${idNumber}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
