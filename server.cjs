@@ -170,15 +170,30 @@ app.post('/api/subscriptions', async (req, res) => {
   const { idNumber, endDate, daysRemaining } = req.body;
 
   try {
-    const query = `
-      INSERT INTO subscriptions (id_number, end_date, days_remaining, status)
-      VALUES ($1, $2, $3, 'Activo') RETURNING *
-    `;
-    const result = await pool.query(query, [idNumber, endDate, daysRemaining]);
-    res.status(201).json(result.rows[0]);
+    // Verificar si ya existe una suscripción con el id_number
+    const existingSubscription = await pool.query('SELECT * FROM subscriptions WHERE id_number = $1', [idNumber]);
+
+    if (existingSubscription.rows.length > 0) {
+      // Si existe, actualizar el registro existente
+      const query = `
+        UPDATE subscriptions
+        SET end_date = $2, days_remaining = $3, status = CASE WHEN $2 <= CURRENT_DATE OR $3 = 0 THEN 'Inactiva' ELSE 'Activo' END
+        WHERE id_number = $1 RETURNING *
+      `;
+      const result = await pool.query(query, [idNumber, endDate, daysRemaining]);
+      res.status(200).json(result.rows[0]);
+    } else {
+      // Si no existe, insertar un nuevo registro
+      const query = `
+        INSERT INTO subscriptions (id_number, end_date, days_remaining, status)
+        VALUES ($1, $2, $3, CASE WHEN $2 <= CURRENT_DATE OR $3 = 0 THEN 'Inactiva' ELSE 'Activo' END) RETURNING *
+      `;
+      const result = await pool.query(query, [idNumber, endDate, daysRemaining]);
+      res.status(201).json(result.rows[0]);
+    }
   } catch (error) {
-    console.error('Error al crear la suscripción:', error);
-    res.status(500).json({ message: 'Error al crear la suscripción' });
+    console.error('Error al crear o actualizar la suscripción:', error);
+    res.status(500).json({ message: 'Error al crear o actualizar la suscripción' });
   }
 });
 
@@ -187,16 +202,27 @@ app.put('/api/subscriptions/:idNumber', async (req, res) => {
   const { endDate, daysRemaining } = req.body;
 
   try {
+    // Verificar si ya existe una suscripción con el id_number
+    const existingSubscription = await pool.query('SELECT * FROM subscriptions WHERE id_number = $1', [idNumber]);
 
-    // Delete existing subscription if it exists
-    await pool.query('DELETE FROM subscriptions WHERE id_number = $1', [idNumber]);
-
-    const query = `
-      INSERT INTO subscriptions (id_number, end_date, days_remaining, status)
-      VALUES ($1, $2, $3, CASE WHEN $2 <= CURRENT_DATE OR $3 = 0 THEN 'Inactiva' ELSE 'Activo' END) RETURNING *
-    `;
-    const result = await pool.query(query, [idNumber, endDate, daysRemaining]);
-    res.status(201).json(result.rows[0]);
+    if (existingSubscription.rows.length > 0) {
+      // Si existe, actualizar el registro existente
+      const query = `
+        UPDATE subscriptions
+        SET end_date = $2, days_remaining = $3, status = CASE WHEN $2 <= CURRENT_DATE OR $3 = 0 THEN 'Inactiva' ELSE 'Activo' END
+        WHERE id_number = $1 RETURNING *
+      `;
+      const result = await pool.query(query, [idNumber, endDate, daysRemaining]);
+      res.status(200).json(result.rows[0]);
+    } else {
+      // Si no existe, insertar un nuevo registro
+      const query = `
+        INSERT INTO subscriptions (id_number, end_date, days_remaining, status)
+        VALUES ($1, $2, $3, CASE WHEN $2 <= CURRENT_DATE OR $3 = 0 THEN 'Inactiva' ELSE 'Activo' END) RETURNING *
+      `;
+      const result = await pool.query(query, [idNumber, endDate, daysRemaining]);
+      res.status(201).json(result.rows[0]);
+    }
   } catch (error) {
     console.error('Error al actualizar la suscripción:', error);
     res.status(500).json({ message: 'Error al actualizar la suscripción' });

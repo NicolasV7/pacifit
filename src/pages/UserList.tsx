@@ -36,7 +36,6 @@ const UserList: React.FC = () => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [selectedEndDate, setSelectedEndDate] = useState<string | null>(null);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
-  const [fechaFinalizacion, setFechaFinalizacion] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -150,17 +149,12 @@ const UserList: React.FC = () => {
 
       const selectedPlan = gymPlans.find((plan) => plan.name === formattedUser.gymPlan);
 
+      let endDate: string;
+
       if (selectedPlan) {
         const existingSubscription = subscriptions.find((sub) => sub.idNumber === formattedUser.idNumber);
 
-        let endDate: string;
-
         if (existingSubscription) {
-          // Delete the existing subscription
-          await fetch(`http://localhost:5000/api/subscriptions/${formattedUser.idNumber}`, {
-            method: 'DELETE',
-          });
-
           endDate = selectedEndDate || existingSubscription.endDate;
         } else {
           endDate = calculateEndDateAsOneMonth(new Date());
@@ -182,6 +176,45 @@ const UserList: React.FC = () => {
         const updatedSubscriptions = subscriptions.filter((sub) => sub.idNumber !== formattedUser.idNumber);
         updatedSubscriptions.push(newSubscription);
         setSubscriptions(updatedSubscriptions);
+      } else {
+        // If no plan is selected, still update the end date
+        const existingSubscription = subscriptions.find((sub) => sub.idNumber === formattedUser.idNumber);
+
+        if (existingSubscription) {
+          const updatedSubscription: Subscription = {
+            ...existingSubscription,
+            endDate: selectedEndDate || existingSubscription.endDate,
+          };
+
+          await fetch(`http://localhost:5000/api/subscriptions/${formattedUser.idNumber}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedSubscription),
+          });
+
+          const updatedSubscriptions = subscriptions.map((sub) =>
+            sub.idNumber === formattedUser.idNumber ? updatedSubscription : sub,
+          );
+          setSubscriptions(updatedSubscriptions);
+        } else {
+          // If no existing subscription, create a new one with the selected end date
+          const newSubscription: Subscription = {
+            idNumber: formattedUser.idNumber,
+            days: 0, // Default value if no plan is selected
+            endDate: selectedEndDate || calculateEndDateAsOneMonth(new Date()),
+            daysRemaining: 0, // Default value if no plan is selected
+          };
+
+          await fetch('http://localhost:5000/api/subscriptions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newSubscription),
+          });
+
+          const updatedSubscriptions = subscriptions.filter((sub) => sub.idNumber !== formattedUser.idNumber);
+          updatedSubscriptions.push(newSubscription);
+          setSubscriptions(updatedSubscriptions);
+        }
       }
 
       setEditingUser(null);

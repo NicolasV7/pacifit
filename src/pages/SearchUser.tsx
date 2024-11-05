@@ -31,7 +31,7 @@ const UserSearch = () => {
         if (subscriptionResponse.ok) {
           const userSubscription = await subscriptionResponse.json();
           setDaysRemaining(userSubscription.days_remaining);
-          setEndDate(userSubscription.end_date);
+          setEndDate(userSubscription.end_date.split('T')[0]); // Formatear la fecha
         } else {
           setDaysRemaining(0);
           setEndDate(null);
