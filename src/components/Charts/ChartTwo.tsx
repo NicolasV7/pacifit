@@ -114,7 +114,7 @@ const ChartTwo: React.FC = () => {
       startDate.setHours(0, 0, 0, 0); // Principio del día hace 30 días
 
       const response = await fetch(
-        `http://localhost:5000/api/suma?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
+        `http://localhost:5055/api/suma?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
       );
       const data = await response.json();
 

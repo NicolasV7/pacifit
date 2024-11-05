@@ -12,7 +12,7 @@ const GymPlans = () => {
 
   // Obtener planes de la API al cargar el componente
   useEffect(() => {
-    fetch('http://localhost:5000/api/plans')
+    fetch('http://localhost:5055/api/plans')
       .then(response => response.json())
       .then(data => setPlans(data))
       .catch(error => console.error("Error al cargar los planes:", error));
@@ -38,7 +38,7 @@ const GymPlans = () => {
     };
 
     // Llamada a la API para agregar el plan
-    fetch('http://localhost:5000/api/plans', {
+    fetch('http://localhost:5055/api/plans', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -59,7 +59,7 @@ const GymPlans = () => {
 
   const deletePlan = (id: string) => {
     // Llamada a la API para eliminar el plan
-    fetch(`http://localhost:5000/api/plans/${id}`, { method: 'DELETE' })
+    fetch(`http://localhost:5055/api/plans/${id}`, { method: 'DELETE' })
       .then(() => {
         setPlans(prevPlans => prevPlans.filter(plan => plan.name !== id));
       })

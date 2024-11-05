@@ -12,9 +12,9 @@ const ECommerce: React.FC = () => {
   useEffect(() => {
     const fetchPreviousData = async () => {
       try {
-        const usersResponse = await fetch('http://localhost:5000/api/users?date=previous');
+        const usersResponse = await fetch('http://localhost:5055/api/users?date=previous');
         const usersData = await usersResponse.json();
-        const subscribersResponse = await fetch('http://localhost:5000/api/subscriptions?date=previous');
+        const subscribersResponse = await fetch('http://localhost:5055/api/subscriptions?date=previous');
         const subscribersData = await subscribersResponse.json();
 
         setPreviousTotalUsers(usersData.length);
@@ -30,9 +30,9 @@ const ECommerce: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const usersResponse = await fetch('http://localhost:5000/api/users');
+        const usersResponse = await fetch('http://localhost:5055/api/users');
         const usersData = await usersResponse.json();
-        const subscribersResponse = await fetch('http://localhost:5000/api/subscriptions');
+        const subscribersResponse = await fetch('http://localhost:5055/api/subscriptions');
         const subscribersData = await subscribersResponse.json();
 
         setTotalUsers(usersData.length);
