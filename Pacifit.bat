@@ -1,10 +1,10 @@
 @echo off
 cd /d "%~dp0"
 
-git pull origin main 
+git pull origin main
 
-npm install
+start /b call npm install > NUL 2>&1
 
-npm run dev
+start /b npm run dev > NUL 2>&1
 
 exit
