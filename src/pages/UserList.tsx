@@ -224,6 +224,31 @@ const UserList: React.FC = () => {
     }
   };
 
+  const handleUpdateDate = async () => {
+    if (!editingUser || !selectedEndDate) return;
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/subscriptions/update-date/${editingUser.idNumber}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ endDate: selectedEndDate }),
+      });
+
+      if (response.ok) {
+        const updatedSubscription = await response.json();
+        setSelectedEndDate(updatedSubscription.end_date.split('T')[0]); // Formatear la fecha
+        alert('Fecha de finalización actualizada correctamente');
+      } else {
+        alert('Error al actualizar la fecha de finalización');
+      }
+    } catch (error) {
+      console.error('Error al actualizar la fecha de finalización:', error);
+      alert('Error al actualizar la fecha de finalización');
+    }
+  };
+
   const calculateEndDateAsOneMonth = (startDate: Date): string => {
     const endDate = new Date(startDate);
     endDate.setMonth(endDate.getMonth() + 1);
@@ -388,6 +413,12 @@ const UserList: React.FC = () => {
               onClick={handleCloseEditModal}
             >
               Cancelar
+            </button>
+            <button
+              className="bg-green-600 text-white px-4 py-2 rounded ml-2"
+              onClick={handleUpdateDate}
+            >
+              Actualizar Fecha
             </button>
           </div>
         </div>

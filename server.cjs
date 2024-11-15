@@ -229,6 +229,33 @@ app.put('/api/subscriptions/:idNumber', async (req, res) => {
   }
 });
 
+app.put('/api/subscriptions/update-date/:idNumber', async (req, res) => {
+  const { idNumber } = req.params;
+  const { endDate } = req.body;
+
+  try {
+    // Verificar si ya existe una suscripción activa con el id_number
+    const existingSubscription = await pool.query('SELECT * FROM subscriptions WHERE id_number = $1 AND status = $2', [idNumber, 'Activo']);
+
+    if (existingSubscription.rows.length > 0) {
+      // Si existe una suscripción activa, actualizar la fecha de finalización
+      const query = `
+        UPDATE subscriptions
+        SET end_date = $2
+        WHERE id_number = $1 RETURNING *
+      `;
+      const result = await pool.query(query, [idNumber, endDate]);
+      res.status(200).json(result.rows[0]);
+    } else {
+      // Si no existe una suscripción activa, devolver un error
+      res.status(404).json({ message: 'No hay una suscripción activa para actualizar' });
+    }
+  } catch (error) {
+    console.error('Error al actualizar la fecha de la suscripción:', error);
+    res.status(500).json({ message: 'Error al actualizar la fecha de la suscripción' });
+  }
+});
+
 // Endpoint para registrar una nueva entrada
 app.post('/api/suma', async (req, res) => {
   const { tipo, monto } = req.body;
@@ -243,6 +270,57 @@ app.post('/api/suma', async (req, res) => {
   } catch (error) {
     console.error('Error al registrar la entrada:', error);
     res.status(500).json({ message: 'Error al registrar la entrada' });
+  }
+});
+
+// Actualizar solo monto
+app.put('/api/suma/monto/:id', async (req, res) => {
+  const { id } = req.params;
+  const { monto } = req.body;
+
+  try {
+    const query = `
+      UPDATE entradas
+      SET monto = $1
+      WHERE id = $2 RETURNING *
+    `;
+    const result = await pool.query(query, [monto, id]);
+    res.status(200).json(result.rows[0]);
+  } catch (error) {
+    console.error('Error al actualizar la entrada:', error);
+    res.status(500).json({ message: 'Error al actualizar la entrada' });
+  }
+});
+
+// Actualizar solo tipo
+app.put('/api/suma/tipo/:id', async (req, res) => {
+  const { id } = req.params;
+  const { tipo } = req.body;
+
+  try {
+    const query = `
+      UPDATE entradas
+      SET tipo = $1
+      WHERE id = $2 RETURNING *
+    `;
+    const result = await pool.query(query, [tipo, id]);
+    res.status(200).json(result.rows[0]);
+  } catch (error) {
+    console.error('Error al actualizar la entrada:', error);
+    res.status(500).json({ message: 'Error al actualizar la entrada' });
+  }
+});
+
+// Eliminar una entrada
+app.delete('/api/suma/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await pool.query('DELETE FROM entradas WHERE id = $1', [id]);
+    res.status(204).end();
+  } catch (error) {
+    console.error('Error al eliminar la entrada:', error);
+    res.status(500).json({ message: 'Error al eliminar la entrada' });
   }
 });
 

@@ -104,44 +104,25 @@ const ChartTwo: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      // Fecha final: hoy al final del día
-      const endDate = new Date();
-      endDate.setHours(23, 59, 59, 999); // Final del día de hoy
-
-      // Fecha de inicio: hace 30 días al principio del día
-      const startDate = new Date();
-      startDate.setDate(endDate.getDate() - 30);
-      startDate.setHours(0, 0, 0, 0); // Principio del día hace 30 días
-
-      const response = await fetch(
-        `http://localhost:5000/api/suma?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
-      );
+      const response = await fetch(`http://localhost:5000/api/suma`);
       const data = await response.json();
 
       let totalEntradas = 0;
       let totalGastos = 0;
-
-      // Filtrar datos para que solo incluyan los últimos 30 días
-      const filteredData = data.filter((item: { tipo: string; monto: number; fecha: string }) => {
-        const itemDate = new Date(item.fecha);
-        return itemDate >= startDate && itemDate <= endDate;
-      });
 
       const groupedData = {
         entradas: Array(7).fill(0),
         gastos: Array(7).fill(0),
       };
 
-      filteredData.forEach((item: { tipo: string; monto: number; fecha: string }) => {
-        const date = new Date(item.fecha);
-        const dayOfWeek = (date.getDay() + 6) % 7; // Ajusta el día de la semana
+      data.forEach((item: { tipo: string; monto: number }) => {
         const monto = Number(item.monto);
 
         if (item.tipo === 'Entrada') {
-          groupedData.entradas[dayOfWeek] += monto;
+          groupedData.entradas[0] += monto; // Agrupar todas las entradas en el primer día
           totalEntradas += monto;
         } else if (item.tipo === 'Gasto') {
-          groupedData.gastos[dayOfWeek] += monto;
+          groupedData.gastos[0] += monto; // Agrupar todos los gastos en el primer día
           totalGastos += monto;
         }
       });
@@ -159,14 +140,12 @@ const ChartTwo: React.FC = () => {
         ],
         totalEntradas,
         totalGastos,
-        data: filteredData, // Solo los datos filtrados
+        data, // Todos los datos
       });
     } catch (error) {
       console.error('Error fetching data:', error);
     }
   };
-
-
 
   const generatePDF = async () => {
     const input = document.getElementById('chartTwo');
@@ -200,8 +179,6 @@ const ChartTwo: React.FC = () => {
       pdf.save(`Reporte-${fechaHoy}.pdf`);
     }
   };
-
-
 
   return (
     <div className="col-span-12 rounded-sm border border-stroke bg-white p-7.5 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-4">
