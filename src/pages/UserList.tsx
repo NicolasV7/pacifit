@@ -36,6 +36,8 @@ const UserList: React.FC = () => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [selectedEndDate, setSelectedEndDate] = useState<string | null>(null);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
+  const [showErrorModal, setShowErrorModal] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -239,12 +241,12 @@ const UserList: React.FC = () => {
       if (response.ok) {
         const updatedSubscription = await response.json();
         setSelectedEndDate(updatedSubscription.end_date.split('T')[0]); // Formatear la fecha
-        alert('Fecha de finalización actualizada correctamente');
+        setShowSuccessModal(true);
       } else {
         alert('Error al actualizar la fecha de finalización');
       }
     } catch (error) {
-      console.error('Error al actualizar la fecha de finalización:', error);
+      setShowErrorModal(true);
       alert('Error al actualizar la fecha de finalización');
     }
   };
@@ -453,6 +455,52 @@ const UserList: React.FC = () => {
                 onClick={handleCloseDeleteModal}
               >
                 Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+{showSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-4 rounded shadow-md w-1/3 relative">
+            <button
+              className="absolute top-2 right-2 text-gray-600 hover:text-gray-800"
+              onClick={() => setShowSuccessModal(false)}
+            >
+              <AiOutlineClose size={20} />
+            </button>
+            <h2 className="text-xl font-semibold mb-4">Éxito</h2>
+            <p>La fecha de finalización ha sido actualizada con éxito.</p>
+            <div className="mt-4 flex justify-end">
+              <button
+                className="bg-blue-600 text-white px-4 py-2 rounded"
+                onClick={() => setShowSuccessModal(false)}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showErrorModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-4 rounded shadow-md w-1/3 relative">
+            <button
+              className="absolute top-2 right-2 text-gray-600 hover:text-gray-800"
+              onClick={() => setShowErrorModal(false)}
+            >
+              <AiOutlineClose size={20} />
+            </button>
+            <h2 className="text-xl font-semibold mb-4">Error</h2>
+            <p>Hubo un error al actualizar la fecha de finalización.</p>
+            <div className="mt-4 flex justify-end">
+              <button
+                className="bg-red-600 text-white px-4 py-2 rounded"
+                onClick={() => setShowErrorModal(false)}
+              >
+                Cerrar
               </button>
             </div>
           </div>
