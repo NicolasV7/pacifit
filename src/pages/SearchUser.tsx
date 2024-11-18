@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Breadcrumb from '../components/Breadcrumbs/Breadcrumb';
-import { AiOutlineClose } from 'react-icons/ai';
+import { AiOutlineClose, AiOutlineEdit } from 'react-icons/ai';
 
 const UserSearch = () => {
   const [idNumber, setIdNumber] = useState('');
@@ -19,6 +19,7 @@ const UserSearch = () => {
   const [showErrorAlert, setShowErrorAlert] = useState(false);
   const [endDate, setEndDate] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const handleSearch = async () => {
     try {
@@ -85,6 +86,46 @@ const UserSearch = () => {
   const handleCloseModal = () => {
     setShowModal(false);
     setIdNumber(''); // Limpiar el input al cerrar el modal
+    setIsEditing(false); // Resetear el modo de edición
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleSave = async () => {
+    if (userData) {
+      const updatedUserData = {
+        fullName: userData.fullName.toUpperCase(),
+        phoneNumber: userData.phoneNumber.toUpperCase(),
+        eps: userData.eps.toUpperCase(),
+        bloodType: userData.bloodType.toUpperCase(),
+        emergencyContactName: userData.emergencyContactName.toUpperCase(),
+        emergencyContactPhone: userData.emergencyContactPhone.toUpperCase(),
+      };
+
+      try {
+        const response = await fetch(`http://localhost:5000/api/users/${idNumber}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updatedUserData),
+        });
+
+        if (response.ok) {
+          setUserData({
+            ...userData,
+            ...updatedUserData,
+          });
+          setIsEditing(false);
+        } else {
+          console.error('Error al actualizar el usuario');
+        }
+      } catch (error) {
+        console.error('Error al actualizar el usuario:', error);
+      }
+    }
   };
 
   return (
@@ -144,27 +185,84 @@ const UserSearch = () => {
                       >
                         <AiOutlineClose size={20} />
                       </button>
+                      <button
+                        className="absolute top-2 right-10 text-gray-600 hover:text-gray-800"
+                        onClick={handleEdit}
+                      >
+                        <AiOutlineEdit size={20} />
+                      </button>
                       <h2 className="text-xl font-semibold mb-4">Detalles del Usuario</h2>
                       {userData && (
                         <div>
-                          <p><strong>Nombre Completo:</strong> {userData.fullName}</p>
-                          <p><strong>Teléfono:</strong> {userData.phoneNumber}</p>
-                          <p><strong>EPS:</strong> {userData.eps}</p>
-                          <p><strong>Tipo de Sangre:</strong> {userData.bloodType}</p>
-                          <p><strong>Contacto de Emergencia:</strong> {userData.emergencyContactName}</p>
-                          <p><strong>Teléfono de Emergencia:</strong> {userData.emergencyContactPhone}</p>
-                          {endDate && <p><strong>Fecha de Fin del Plan:</strong> {endDate}</p>}
-                          {daysRemaining !== null && (
-                            <p><strong>Días Restantes del Plan:</strong> {daysRemaining} días</p>
+                          {isEditing ? (
+                            <>
+                              <input
+                                type="text"
+                                value={userData.fullName}
+                                onChange={(e) => setUserData({ ...userData, fullName: e.target.value })}
+                                className="w-full mb-2 p-2 border rounded"
+                              />
+                              <input
+                                type="text"
+                                value={userData.phoneNumber}
+                                onChange={(e) => setUserData({ ...userData, phoneNumber: e.target.value })}
+                                className="w-full mb-2 p-2 border rounded"
+                              />
+                              <input
+                                type="text"
+                                value={userData.eps}
+                                onChange={(e) => setUserData({ ...userData, eps: e.target.value })}
+                                className="w-full mb-2 p-2 border rounded"
+                              />
+                              <input
+                                type="text"
+                                value={userData.bloodType}
+                                onChange={(e) => setUserData({ ...userData, bloodType: e.target.value })}
+                                className="w-full mb-2 p-2 border rounded"
+                              />
+                              <input
+                                type="text"
+                                value={userData.emergencyContactName}
+                                onChange={(e) => setUserData({ ...userData, emergencyContactName: e.target.value })}
+                                className="w-full mb-2 p-2 border rounded"
+                              />
+                              <input
+                                type="text"
+                                value={userData.emergencyContactPhone}
+                                onChange={(e) => setUserData({ ...userData, emergencyContactPhone: e.target.value })}
+                                className="w-full mb-2 p-2 border rounded"
+                              />
+                              <button
+                                className="bg-blue-600 text-white px-4 py-2 rounded mt-4 w-full"
+                                onClick={handleSave}
+                              >
+                                Guardar
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <p><strong>Nombre Completo:</strong> {userData.fullName}</p>
+                              <p><strong>Teléfono:</strong> {userData.phoneNumber}</p>
+                              <p><strong>EPS:</strong> {userData.eps}</p>
+                              <p><strong>Tipo de Sangre:</strong> {userData.bloodType}</p>
+                              <p><strong>Contacto de Emergencia:</strong> {userData.emergencyContactName}</p>
+                              <p><strong>Teléfono de Emergencia:</strong> {userData.emergencyContactPhone}</p>
+                              {endDate && <p><strong>Fecha de Fin del Plan:</strong> {endDate}</p>}
+                              {daysRemaining !== null && (
+                                <p><strong>Días Restantes del Plan:</strong> {daysRemaining} días</p>
+                              )}
+                            </>
                           )}
                         </div>
                       )}
-                      <button
-                        className="bg-blue-600 text-white px-4 py-2 rounded mt-4 w-full"
-                        onClick={handleCloseModal}
-                      >
-                        Cerrar
-                      </button>
+                      {!isEditing && (
+                        <button
+                          className="bg-blue-600 text-white px-4 py-2 rounded mt-4 w-full"
+                          onClick={handleCloseModal}
+                        >
+                          Cerrar
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
