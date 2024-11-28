@@ -6,6 +6,7 @@ const UserSearch = () => {
   const [idNumber, setIdNumber] = useState('');
   const [userData, setUserData] = useState<{
     fullName: string;
+    idNumber: string;
     phoneNumber: string;
     eps: string;
     bloodType: string;
@@ -14,32 +15,45 @@ const UserSearch = () => {
     gymPlanName: string;
     gymPlanPrice: number;
     gymPlanDays: number;
+    daysRemaining: number;
   } | null>(null);
   const [daysRemaining, setDaysRemaining] = useState<number | null>(null);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
   const [endDate, setEndDate] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const handleSearch = async () => {
     try {
-      const userResponse = await fetch(`http://localhost:5000/api/users/${idNumber}`);
+      const userResponse = await fetch(
+        `http://localhost:5000/api/users/${idNumber}`,
+      );
       if (userResponse.ok) {
         const foundUser = await userResponse.json();
         console.log('Usuario encontrado:', foundUser);
 
-        const subscriptionResponse = await fetch(`http://localhost:5000/api/subscriptions/${idNumber}`);
+        let daysRemainingValue = 0;
+        let endDateValue = null;
+
+        const subscriptionResponse = await fetch(
+          `http://localhost:5000/api/subscriptions/${idNumber}`,
+        );
         if (subscriptionResponse.ok) {
           const userSubscription = await subscriptionResponse.json();
-          setDaysRemaining(userSubscription.days_remaining);
-          setEndDate(userSubscription.end_date.split('T')[0]); // Formatear la fecha
+          daysRemainingValue = userSubscription.days_remaining;
+          endDateValue = userSubscription.end_date.split('T')[0];
+          setDaysRemaining(daysRemainingValue);
+          setEndDate(endDateValue);
         } else {
           setDaysRemaining(0);
           setEndDate(null);
         }
 
+        // Actualiza userData usando los valores obtenidos
         setUserData({
           fullName: foundUser.full_name,
+          idNumber: foundUser.id_number,
           phoneNumber: foundUser.phone_number,
           eps: foundUser.eps,
           bloodType: foundUser.blood_type,
@@ -48,7 +62,9 @@ const UserSearch = () => {
           gymPlanName: foundUser.gym_plan_name,
           gymPlanPrice: foundUser.gym_plan_price,
           gymPlanDays: foundUser.gym_plan_days,
+          daysRemaining: daysRemainingValue, // Usa el valor obtenido de la suscripción
         });
+
         setShowModal(true); // Mostrar modal al encontrar el usuario
       } else {
         setShowErrorAlert(true);
@@ -95,8 +111,10 @@ const UserSearch = () => {
 
   const handleSave = async () => {
     if (userData) {
+      // Construye updatedUserData, permitiendo actualizar también idNumber
       const updatedUserData = {
         fullName: userData.fullName.toUpperCase(),
+        idNumber: typeof userData.idNumber === 'string' ? userData.idNumber.toUpperCase() : userData.idNumber, // Nuevo idNumber
         phoneNumber: userData.phoneNumber.toUpperCase(),
         eps: userData.eps.toUpperCase(),
         bloodType: userData.bloodType.toUpperCase(),
@@ -105,20 +123,25 @@ const UserSearch = () => {
       };
 
       try {
-        const response = await fetch(`http://localhost:5000/api/users/${idNumber}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
+        // La solicitud se realiza usando el idNumber original como parámetro
+        const response = await fetch(
+          `http://localhost:5000/api/users/${idNumber}`, // Usa el idNumber actual para identificar al usuario
+          {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(updatedUserData), // Envía el nuevo idNumber como parte del cuerpo
           },
-          body: JSON.stringify(updatedUserData),
-        });
+        );
 
         if (response.ok) {
-          setUserData({
-            ...userData,
-            ...updatedUserData,
-          });
+          const updatedData = await response.json(); // Recupera los datos actualizados desde el servidor
+          setUserData(updatedData); // Actualiza userData con la respuesta del servidor
           setIsEditing(false);
+          setShowModal(false);
+          setShowSuccessModal(true); // Mostrar modal de éxito
+          console.log('Datos actualizados:', updatedData);
         } else {
           console.error('Error al actualizar el usuario');
         }
@@ -126,6 +149,10 @@ const UserSearch = () => {
         console.error('Error al actualizar el usuario:', error);
       }
     }
+  };
+
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
   };
 
   return (
@@ -191,47 +218,123 @@ const UserSearch = () => {
                       >
                         <AiOutlineEdit size={20} />
                       </button>
-                      <h2 className="text-xl font-semibold mb-4">Detalles del Usuario</h2>
+                      <h2 className="text-xl font-semibold mb-4">
+                        Detalles del Usuario
+                      </h2>
                       {userData && (
                         <div>
                           {isEditing ? (
                             <>
+                              <label className="block mb-1">Nombre:</label>
                               <input
                                 type="text"
                                 value={userData.fullName}
-                                onChange={(e) => setUserData({ ...userData, fullName: e.target.value })}
+                                onChange={(e) =>
+                                  setUserData({
+                                    ...userData,
+                                    fullName: e.target.value,
+                                  })
+                                }
                                 className="w-full mb-2 p-2 border rounded"
                               />
+
+                              <label className="block mb-1">ID Number:</label>
+                              <input
+                                type="text"
+                                value={userData.idNumber}
+                                onChange={(e) =>
+                                  setUserData({
+                                    ...userData,
+                                    idNumber: e.target.value,
+                                  })
+                                }
+                                className="w-full mb-2 p-2 border rounded"
+                              />
+
+                              <label className="block mb-1">
+                                Phone Number:
+                              </label>
                               <input
                                 type="text"
                                 value={userData.phoneNumber}
-                                onChange={(e) => setUserData({ ...userData, phoneNumber: e.target.value })}
+                                onChange={(e) =>
+                                  setUserData({
+                                    ...userData,
+                                    phoneNumber: e.target.value,
+                                  })
+                                }
                                 className="w-full mb-2 p-2 border rounded"
                               />
+
+                              <label className="block mb-1">EPS:</label>
                               <input
                                 type="text"
                                 value={userData.eps}
-                                onChange={(e) => setUserData({ ...userData, eps: e.target.value })}
+                                onChange={(e) =>
+                                  setUserData({
+                                    ...userData,
+                                    eps: e.target.value,
+                                  })
+                                }
                                 className="w-full mb-2 p-2 border rounded"
                               />
+
+                              <label className="block mb-1">Blood Type:</label>
                               <input
                                 type="text"
                                 value={userData.bloodType}
-                                onChange={(e) => setUserData({ ...userData, bloodType: e.target.value })}
+                                onChange={(e) =>
+                                  setUserData({
+                                    ...userData,
+                                    bloodType: e.target.value,
+                                  })
+                                }
                                 className="w-full mb-2 p-2 border rounded"
                               />
+
+                              <label className="block mb-1">
+                                Emergency Contact Name:
+                              </label>
                               <input
                                 type="text"
                                 value={userData.emergencyContactName}
-                                onChange={(e) => setUserData({ ...userData, emergencyContactName: e.target.value })}
+                                onChange={(e) =>
+                                  setUserData({
+                                    ...userData,
+                                    emergencyContactName: e.target.value,
+                                  })
+                                }
                                 className="w-full mb-2 p-2 border rounded"
                               />
+
+                              <label className="block mb-1">
+                                Emergency Contact Phone:
+                              </label>
                               <input
                                 type="text"
                                 value={userData.emergencyContactPhone}
-                                onChange={(e) => setUserData({ ...userData, emergencyContactPhone: e.target.value })}
+                                onChange={(e) =>
+                                  setUserData({
+                                    ...userData,
+                                    emergencyContactPhone: e.target.value,
+                                  })
+                                }
                                 className="w-full mb-2 p-2 border rounded"
                               />
+
+                              <label className="block mb-1">Dias:</label>
+                              <input
+                                type="text"
+                                value={userData.daysRemaining}
+                                onChange={(e) =>
+                                  setUserData({
+                                    ...userData,
+                                    daysRemaining: parseInt(e.target.value),
+                                  })
+                                }
+                                className="w-full mb-2 p-2 border rounded"
+                              />
+
                               <button
                                 className="bg-blue-600 text-white px-4 py-2 rounded mt-4 w-full"
                                 onClick={handleSave}
@@ -241,15 +344,40 @@ const UserSearch = () => {
                             </>
                           ) : (
                             <>
-                              <p><strong>Nombre Completo:</strong> {userData.fullName}</p>
-                              <p><strong>Teléfono:</strong> {userData.phoneNumber}</p>
-                              <p><strong>EPS:</strong> {userData.eps}</p>
-                              <p><strong>Tipo de Sangre:</strong> {userData.bloodType}</p>
-                              <p><strong>Contacto de Emergencia:</strong> {userData.emergencyContactName}</p>
-                              <p><strong>Teléfono de Emergencia:</strong> {userData.emergencyContactPhone}</p>
-                              {endDate && <p><strong>Fecha de Fin del Plan:</strong> {endDate}</p>}
+                              <p>
+                                <strong>Nombre Completo:</strong>{' '}
+                                {userData.fullName}
+                              </p>
+                              <p>
+                                <strong>Teléfono:</strong>{' '}
+                                {userData.phoneNumber}
+                              </p>
+                              <p>
+                                <strong>EPS:</strong> {userData.eps}
+                              </p>
+                              <p>
+                                <strong>Tipo de Sangre:</strong>{' '}
+                                {userData.bloodType}
+                              </p>
+                              <p>
+                                <strong>Contacto de Emergencia:</strong>{' '}
+                                {userData.emergencyContactName}
+                              </p>
+                              <p>
+                                <strong>Teléfono de Emergencia:</strong>{' '}
+                                {userData.emergencyContactPhone}
+                              </p>
+                              {endDate && (
+                                <p>
+                                  <strong>Fecha de Fin del Plan:</strong>{' '}
+                                  {endDate}
+                                </p>
+                              )}
                               {daysRemaining !== null && (
-                                <p><strong>Días Restantes del Plan:</strong> {daysRemaining} días</p>
+                                <p>
+                                  <strong>Días Restantes del Plan:</strong>{' '}
+                                  {daysRemaining} días
+                                </p>
                               )}
                             </>
                           )}
@@ -271,6 +399,30 @@ const UserSearch = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal de éxito */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded shadow-lg relative w-full max-w-lg">
+            <button
+              className="absolute top-2 right-2 text-gray-600 hover:text-gray-800"
+              onClick={handleCloseSuccessModal}
+            >
+              <AiOutlineClose size={20} />
+            </button>
+            <h2 className="text-xl font-semibold mb-4">
+              Actualización Exitosa
+            </h2>
+            <p>Los datos del usuario se han actualizado correctamente.</p>
+            <button
+              className="bg-blue-600 text-white px-4 py-2 rounded mt-4 w-full"
+              onClick={handleCloseSuccessModal}
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 };

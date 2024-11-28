@@ -71,21 +71,43 @@ app.delete('/api/users/:idNumber', async (req, res) => {
 });
 
 app.put('/api/users/:idNumber', async (req, res) => {
-  const { idNumber } = req.params;
-  const { fullName, phoneNumber, eps, bloodType, emergencyContactName, emergencyContactPhone } = req.body;
+  const { idNumber } = req.params; // idNumber original (de la URL)
+  const {
+    fullName,
+    phoneNumber,
+    eps,
+    bloodType,
+    emergencyContactName,
+    emergencyContactPhone,
+    idNumber: newIdNumber, // idNumber actualizado (del cuerpo de la solicitud)
+  } = req.body;
 
   try {
     const query = `
       UPDATE users
-      SET full_name = $1, phone_number = $2, eps = $3, blood_type = $4, emergency_contact_name = $5, emergency_contact_phone = $6
-      WHERE id_number = $7 RETURNING *
+      SET
+        full_name = $1,
+        phone_number = $2,
+        eps = $3,
+        blood_type = $4,
+        emergency_contact_name = $5,
+        emergency_contact_phone = $6,
+        id_number = $7
+      WHERE id_number = $8 RETURNING *
     `;
     const result = await pool.query(query, [
-      fullName, phoneNumber, eps, bloodType, emergencyContactName, emergencyContactPhone, idNumber
+      fullName,
+      phoneNumber,
+      eps,
+      bloodType,
+      emergencyContactName,
+      emergencyContactPhone,
+      newIdNumber || idNumber, // Usa el nuevo idNumber o el actual si no cambia
+      idNumber, // idNumber original para identificar al usuario
     ]);
 
     if (result.rows.length > 0) {
-      res.json(result.rows[0]);
+      res.json(result.rows[0]); // Envía los datos actualizados al cliente
     } else {
       res.status(404).json({ message: 'Usuario no encontrado' });
     }
@@ -94,6 +116,8 @@ app.put('/api/users/:idNumber', async (req, res) => {
     res.status(500).json({ message: 'Error al actualizar el usuario' });
   }
 });
+
+
 
 app.post('/api/plans', async (req, res) => {
   const { name, price, days } = req.body;
