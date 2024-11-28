@@ -114,12 +114,16 @@ const UserSearch = () => {
       // Construye updatedUserData, permitiendo actualizar también idNumber
       const updatedUserData = {
         fullName: userData.fullName.toUpperCase(),
-        idNumber: typeof userData.idNumber === 'string' ? userData.idNumber.toUpperCase() : userData.idNumber, // Nuevo idNumber
+        idNumber:
+          typeof userData.idNumber === 'string'
+            ? userData.idNumber.toUpperCase()
+            : userData.idNumber, // Nuevo idNumber
         phoneNumber: userData.phoneNumber.toUpperCase(),
         eps: userData.eps.toUpperCase(),
         bloodType: userData.bloodType.toUpperCase(),
         emergencyContactName: userData.emergencyContactName.toUpperCase(),
         emergencyContactPhone: userData.emergencyContactPhone.toUpperCase(),
+        daysRemaining: userData.daysRemaining,
       };
 
       try {
@@ -134,6 +138,21 @@ const UserSearch = () => {
             body: JSON.stringify(updatedUserData), // Envía el nuevo idNumber como parte del cuerpo
           },
         );
+
+        const updatedSubscriptionData = await fetch(
+          `http://localhost:5000/api/subscriptions/update-days/${idNumber}`, // Usa el idNumber actual para identificar la suscripción
+          {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ daysRemaining: userData.daysRemaining }), // Actualiza solo los días restantes
+          },
+        );
+
+        if (updatedSubscriptionData.ok) {
+          console.log('Datos de suscripción actualizados');
+        }
 
         if (response.ok) {
           const updatedData = await response.json(); // Recupera los datos actualizados desde el servidor
@@ -326,12 +345,14 @@ const UserSearch = () => {
                               <input
                                 type="text"
                                 value={userData.daysRemaining}
-                                onChange={(e) =>
+                                onChange={(e) => {
+                                  const value = e.target.value;
                                   setUserData({
                                     ...userData,
-                                    daysRemaining: parseInt(e.target.value),
-                                  })
-                                }
+                                    daysRemaining:
+                                      value === '' ? 0 : parseInt(value),
+                                  });
+                                }}
                                 className="w-full mb-2 p-2 border rounded"
                               />
 

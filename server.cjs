@@ -253,6 +253,34 @@ app.put('/api/subscriptions/:idNumber', async (req, res) => {
   }
 });
 
+//update days remaining
+app.put('/api/subscriptions/update-days/:idNumber', async (req, res) => {
+  const { idNumber } = req.params;
+  const { daysRemaining } = req.body;
+
+  try {
+    // Verificar si ya existe una suscripción activa con el id_number
+    const existingSubscription = await pool.query('SELECT * FROM subscriptions WHERE id_number = $1 AND status = $2', [idNumber, 'Activo']);
+
+    if (existingSubscription.rows.length > 0) {
+      // Si existe una suscripción activa, actualizar los días restantes
+      const query = `
+        UPDATE subscriptions
+        SET days_remaining = $2
+        WHERE id_number = $1 RETURNING *
+      `;
+      const result = await pool.query(query, [idNumber, daysRemaining]);
+      res.status(200).json(result.rows[0]);
+    } else {
+      // Si no existe una suscripción activa, devolver un error
+      res.status(404).json({ message: 'No hay una suscripción activa para actualizar' });
+    }
+  } catch (error) {
+    console.error('Error al actualizar los días restantes de la suscripción:', error);
+    res.status(500).json({ message: 'Error al actualizar los días restantes de la suscripción' });
+  }
+})
+
 app.put('/api/subscriptions/update-date/:idNumber', async (req, res) => {
   const { idNumber } = req.params;
   const { endDate } = req.body;
