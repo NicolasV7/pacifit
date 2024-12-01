@@ -9,6 +9,8 @@ const UserSubscription = () => {
   const [status, setStatus] = useState<string | null>(null);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [userName, setUserName] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSearch = async () => {
     if (!idNumber) {
@@ -18,6 +20,8 @@ const UserSubscription = () => {
       }, 2000);
       return;
     }
+
+    setIsLoading(true);
 
     try {
       const subscriptionResponse = await fetch(`http://localhost:5000/api/subscriptions/${idNumber}`);
@@ -46,6 +50,15 @@ const UserSubscription = () => {
             }),
           });
 
+          const userResponse = await fetch(`http://localhost:5000/api/users/${idNumber}`);
+          if (userResponse.ok) {
+            const user = await userResponse.json();
+            console.log('Usuario encontrado para la suscripción:', user);
+            setUserName(user.full_name);
+          } else {
+            setUserName('Usuario no encontrado');
+          }
+
           setShowModal(true);
         } else {
           setDaysRemaining(0);
@@ -72,11 +85,13 @@ const UserSubscription = () => {
       setDays(null);
       setEndDate(null);
       setStatus(null);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !isLoading) {
       if (showModal) {
         handleCloseModal();
       } else {
@@ -123,6 +138,7 @@ const UserSubscription = () => {
                     onChange={(e) => setIdNumber(e.target.value)}
                     onKeyDown={handleKeyDown}
                     className="w-full rounded border border-stroke bg-gray py-3 pl-4.5 text-black focus:border-primary focus-visible:outline-none dark:border-strokedark dark:bg-meta-4 dark:text-white dark:focus:border-primary"
+                    disabled={isLoading}
                   />
                 </div>
 
@@ -130,8 +146,9 @@ const UserSubscription = () => {
                   <button
                     onClick={handleSearch}
                     className="rounded bg-primary px-6 py-2.5 text-white transition duration-200 hover:bg-opacity-80"
+                    disabled={isLoading}
                   >
-                    Buscar Suscripción
+                    {isLoading ? 'Buscando...' : 'Buscar Suscripción'}
                   </button>
                 </div>
               </div>
@@ -153,6 +170,14 @@ const UserSubscription = () => {
             <h2 className="text-xl font-semibold mb-4 text-center">
               Detalles de la Suscripción
             </h2>
+
+            {userName && (
+              <p className="text-lg text-center">
+                {userName}
+              </p>
+            )}
+
+            <div className="border-b border-stroke my-4"></div>
 
             <div className="flex flex-col items-center justify-center">
               {status === 'Activo' ? (
